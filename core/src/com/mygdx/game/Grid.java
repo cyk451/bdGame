@@ -127,4 +127,9 @@ class Grid extends Array<Array<Tile> > {
 		}
 		return true;
 	}
+	/*
+	public Vector2 getUnitImageBase(int x, int y) {
+		return get(x)get(y);
+	}
+	*/
 }

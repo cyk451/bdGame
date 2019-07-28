@@ -31,6 +31,7 @@ import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.TimeUtils;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import java.util.Iterator;
+import com.badlogic.gdx.graphics.g2d.Sprite;
 
 public class GameScreen implements Screen {
 	final MyGdxGame game;
@@ -55,13 +56,37 @@ public class GameScreen implements Screen {
 	// private MapRenderer mapRenderer = new HexagonalTiledMapRenderer(new TmxMapLoader().load("test3.tmx"), .2f);
 
 	Array<Unit> unitList;
+	// Unit selected = null;
 	// private Unit chosen = null;
 
 	private void loadResources() {
+		Texture tank1 = new Texture(Gdx.files.internal("tank.png"));
+		Texture tank2 = new Texture(Gdx.files.internal("tank-blue.png"));
 		unitList = new Array<Unit>();
-		unitList.add(new Unit(null));
-		unitList.add(new Unit(null));
-		unitList.add(new Unit(null));
+		unitList.add(new Unit(new Sprite(tank1, 48, 48)));
+		unitList.add(new Unit(new Sprite(tank2, 48, 48)));
+		unitList.add(new Unit(new Sprite(tank1, 48, 48)));
+		unitList.add(new Unit(new Sprite(tank2, 48, 48)));
+		unitList.add(new Unit(new Sprite(tank1, 48, 48)));
+		unitList.add(new Unit(new Sprite(tank2, 48, 48)));
+		unitList.add(new Unit(new Sprite(tank1, 48, 48)));
+		unitList.add(new Unit(new Sprite(tank2, 48, 48)));
+		unitList.add(new Unit(new Sprite(tank1, 48, 48)));
+		unitList.add(new Unit(new Sprite(tank2, 48, 48)));
+		unitList.add(new Unit(new Sprite(tank1, 48, 48)));
+		unitList.add(new Unit(new Sprite(tank2, 48, 48)));
+		unitList.add(new Unit(new Sprite(tank1, 48, 48)));
+		unitList.add(new Unit(new Sprite(tank2, 48, 48)));
+		unitList.add(new Unit(new Sprite(tank1, 48, 48)));
+		unitList.add(new Unit(new Sprite(tank2, 48, 48)));
+		unitList.add(new Unit(new Sprite(tank1, 48, 48)));
+		unitList.add(new Unit(new Sprite(tank2, 48, 48)));
+		unitList.add(new Unit(new Sprite(tank1, 48, 48)));
+		unitList.add(new Unit(new Sprite(tank2, 48, 48)));
+		unitList.add(new Unit(new Sprite(tank1, 48, 48)));
+		unitList.add(new Unit(new Sprite(tank2, 48, 48)));
+		unitList.add(new Unit(new Sprite(tank1, 48, 48)));
+		unitList.add(new Unit(new Sprite(tank2, 48, 48)));
 	}
 
 	class UnitButton extends ImageButton {
@@ -72,39 +97,64 @@ public class GameScreen implements Screen {
 		}
 	}
 
+	class UnitSelectBar extends Table {
+		private Stage stage;
+
+		UnitSelectBar(Stage parent, MyGdxGame game) {
+			super();
+			stage = parent;
+
+			setWidth(stage.getWidth());
+			setHeight(BOTTON_FRAME_HEIGHT);
+			align(Align.topLeft);
+			setPosition(0, 0);
+
+			Button startButton = new TextButton("Fight", game.skin);
+			startButton.addListener(new ClickListener(){
+				@Override 
+				public void clicked(InputEvent event, float x, float y){
+					// button.setText("You clicked the button");
+					// game.setScreen(new GameScreen(game));
+					// dispose();
+					System.out.println("Ok fight starts");
+				}
+			});
+
+			add(startButton);
+			HorizontalGroup horizontal = new HorizontalGroup();
+			for (final Unit u : unitList) {
+				UnitButton ub = new UnitButton(u);
+				ub.setHeight(48);
+				horizontal.addActor(ub);
+				ub.addListener(new ClickListener(){
+					@Override 
+					public void clicked(InputEvent event, float x, float y){
+						System.out.println("A unit clicked...");
+						setUnitSelected(u);
+					}
+				});
+			}
+			ScrollPane sp = new ScrollPane(horizontal, game.skin);
+			// sp.setScrollbarsVisible(false);
+			// sp.setScrollbarTouch(false);
+
+			add(sp);
+			stage.addActor(this);
+		}
+	}
+
 	private void createUi() {
 		stage = new Stage(new ScreenViewport());
-		Table table = new Table();
-		table.setWidth(stage.getWidth());
-		table.align(Align.topLeft);
-		table.setPosition(0, BOTTON_FRAME_HEIGHT);
-
-		Button startButton = new TextButton("Fight", game.skin);
-
-		startButton.addListener(new ClickListener(){
-			@Override 
-			public void clicked(InputEvent event, float x, float y){
-				// button.setText("You clicked the button");
-				// game.setScreen(new GameScreen(game));
-				// dispose();
-				System.out.println("Ok fight starts");
-			}
-		});
-
-		HorizontalGroup horizontal = new HorizontalGroup();
-		/*
-		   for (int i = 0; i < 20; ++i) {
-		   horizontal.addActor(new ImageButton(new TextureRegionDrawable(new TextureRegion(dropImage))));
-		   }
-		   */
-		ScrollPane sp = new ScrollPane(horizontal, game.skin);
-
-		table.add(sp);
+		UnitSelectBar bar = new UnitSelectBar(stage, game);
 		// table.add(horizontal);
 
-		table.add(startButton);
-		stage.addActor(table);
 		Gdx.input.setInputProcessor(stage);
+	}
+
+	public void setUnitSelected(Unit u) {
+		if (u.deployed)
+			return;
+		Unit.chosen = u;
 	}
 
 	public GameScreen(final MyGdxGame game) {
@@ -166,9 +216,6 @@ public class GameScreen implements Screen {
 		Gdx.gl.glClearColor(0, 0, 0, 1);
 		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
-		stage.act(Gdx.graphics.getDeltaTime());
-		stage.draw();
-
 		// tell the camera to update its matrices.
 		camera.update();
 
@@ -194,6 +241,10 @@ public class GameScreen implements Screen {
 		for (Player player : players) {
 			player.render(game);
 		}
+
+		stage.act(Gdx.graphics.getDeltaTime());
+		stage.draw();
+		stage.setDebugAll(true);
 
 		// process user input
 		if (Gdx.input.isTouched()) {
