@@ -1,5 +1,6 @@
 package com.mygdx.game;
 
+import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer.ShapeType;
@@ -11,6 +12,7 @@ class Player {
 	Grid		grid;
 	Player		opponent;
 	Grid.Formation	format;
+	Array<Unit> order;
 
 	Player(float x, float y, Player opponent) {
 		Color c = Color.BLUE;

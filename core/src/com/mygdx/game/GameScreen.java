@@ -4,6 +4,7 @@ import com.badlogic.gdx.audio.Music;
 import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
@@ -31,69 +32,73 @@ import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.TimeUtils;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import java.util.Iterator;
-import com.badlogic.gdx.graphics.g2d.Sprite;
 
 public class GameScreen implements Screen {
+	static final float BOTTON_FRAME_HEIGHT = 80;
+	static final float TOP_FRAME_HEIGHT = 200;
+
 	final MyGdxGame game;
 
-	Array<Rectangle> raindrops;
-	// Array<Grid> grids = new Array<Grid>(2);
 	Array<Player> players = new Array<Player>(2);
-	// Array<Image>
-
-	// Texture dropImage;
-	// Texture bucketImage;
-	// Sound dropSound;
-	// Music rainMusic;
 	OrthographicCamera camera;
-	// Rectangle bucket;
-	// long lastDropTime;
-	// int dropsGathered;
 
 	Stage stage;
-	final float BOTTON_FRAME_HEIGHT = 80;
-
-	// private MapRenderer mapRenderer = new HexagonalTiledMapRenderer(new TmxMapLoader().load("test3.tmx"), .2f);
-
 	Array<Unit> unitList;
-	// Unit selected = null;
-	// private Unit chosen = null;
+	UnitSelectBar unitSelectBar;
+	InformationBar informationBar;
 
 	private void loadResources() {
-		Texture tank1 = new Texture(Gdx.files.internal("tank.png"));
-		Texture tank2 = new Texture(Gdx.files.internal("tank-blue.png"));
+		// Texture tank1 = new Texture(Gdx.files.internal("tank.png"));
+		// Texture tank2 = new Texture();
+
+		Json json = new Json();
+		Gdx.files.internal("unit.json");
+		json.setOutputType(OutputType.minimal);
+		
+		Object json.fromJson(UnitProperties.class, text);
 		unitList = new Array<Unit>();
-		unitList.add(new Unit(new Sprite(tank1, 48, 48)));
-		unitList.add(new Unit(new Sprite(tank2, 48, 48)));
-		unitList.add(new Unit(new Sprite(tank1, 48, 48)));
-		unitList.add(new Unit(new Sprite(tank2, 48, 48)));
-		unitList.add(new Unit(new Sprite(tank1, 48, 48)));
-		unitList.add(new Unit(new Sprite(tank2, 48, 48)));
-		unitList.add(new Unit(new Sprite(tank1, 48, 48)));
-		unitList.add(new Unit(new Sprite(tank2, 48, 48)));
-		unitList.add(new Unit(new Sprite(tank1, 48, 48)));
-		unitList.add(new Unit(new Sprite(tank2, 48, 48)));
-		unitList.add(new Unit(new Sprite(tank1, 48, 48)));
-		unitList.add(new Unit(new Sprite(tank2, 48, 48)));
-		unitList.add(new Unit(new Sprite(tank1, 48, 48)));
-		unitList.add(new Unit(new Sprite(tank2, 48, 48)));
-		unitList.add(new Unit(new Sprite(tank1, 48, 48)));
-		unitList.add(new Unit(new Sprite(tank2, 48, 48)));
-		unitList.add(new Unit(new Sprite(tank1, 48, 48)));
-		unitList.add(new Unit(new Sprite(tank2, 48, 48)));
-		unitList.add(new Unit(new Sprite(tank1, 48, 48)));
-		unitList.add(new Unit(new Sprite(tank2, 48, 48)));
-		unitList.add(new Unit(new Sprite(tank1, 48, 48)));
-		unitList.add(new Unit(new Sprite(tank2, 48, 48)));
-		unitList.add(new Unit(new Sprite(tank1, 48, 48)));
-		unitList.add(new Unit(new Sprite(tank2, 48, 48)));
+		for (UnitProperties up : UnitProperties.unitPool) {
+			unitList.add(new Unit(up));
+		}
 	}
 
 	class UnitButton extends ImageButton {
 		Unit unit;
 		UnitButton(Unit u) {
-			super(new SpriteDrawable(u.chibiSprite));
+			super(new SpriteDrawable(u.getIllust()));
 			unit = u;
+		}
+	}
+
+	class InformationBar extends Table {
+		private Stage stage;
+		private Label unitName;
+		private Label status;
+
+		InformationBar(Stage parent, MyGdxGame game) {
+			super();
+			stage = parent;
+
+			setWidth(stage.getWidth());
+			setHeight(TOP_FRAME_HEIGHT);
+			align(Align.topLeft);
+			setPosition(0, stage.getHeight() - TOP_FRAME_HEIGHT);
+
+			unitName = new Label("", game.skin);
+			status = new Label("", game.skin);
+			add(unitName);
+			add(status);
+
+			stage.addActor(this);
+		}
+
+		public void setInformation(Unit u) {
+			unitName.setText(u.getName());
+			status.setText("hp: " + u.getHp()+ " atk: " + u.getAtk());
+			drawAttackArea();
+		}
+
+		public void drawAttackArea() {
 		}
 	}
 
@@ -145,7 +150,8 @@ public class GameScreen implements Screen {
 
 	private void createUi() {
 		stage = new Stage(new ScreenViewport());
-		UnitSelectBar bar = new UnitSelectBar(stage, game);
+		unitSelectBar = new UnitSelectBar(stage, game);
+		informationBar = new InformationBar(stage, game);
 		// table.add(horizontal);
 
 		Gdx.input.setInputProcessor(stage);

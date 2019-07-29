@@ -74,7 +74,7 @@ public class Tile extends Polygon {
 		if (unit == null)
 			return;
 		// just render here.
-		Sprite unitSprite = unit.getSprite();
+		Sprite unitSprite = unit.getIllust();
 
 		float []pos = getPosition();
 		game.batch.begin();
