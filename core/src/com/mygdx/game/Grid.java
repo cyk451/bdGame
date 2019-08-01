@@ -14,7 +14,8 @@ import com.badlogic.gdx.math.Circle;
 class Grid extends Array<Array<Tile> > {
 
 	float offX, offY;
-	Color color;
+	// Color color;
+	Player owner;
 	// haven't see a need to let them configurable
 	static final int TILE_WIDTH = 6;
 	static final int TILE_HEIGHT = 5;
@@ -34,14 +35,14 @@ class Grid extends Array<Array<Tile> > {
 		}
 	}
 
-	public Grid(float x, float y, Color c) {
-		placeTiles(x, y, c);
+	public Grid(float x, float y, Player p) {
+		placeTiles(x, y, p);
 	}
 
-	private void placeTiles(float x, float y, Color c) {
+	private void placeTiles(float x, float y, Player p) {
 		offX = x; 
 		offY = y;
-		color = c;
+		owner = p;
 
 		// okay im lazy
 		float e = TILE_EDGE_PXL;
@@ -66,7 +67,7 @@ class Grid extends Array<Array<Tile> > {
 				x += 0.5 * s;
 			}
 			for (int j = 0; j < TILE_WIDTH; ++j) {
-				Tile tile = new Tile(shapePnts, x, y, c);
+				Tile tile = new Tile(shapePnts, x, y, owner);
 				lane.add(tile);
 				x += SQRT3 * e;
 				x += s;
@@ -103,8 +104,13 @@ class Grid extends Array<Array<Tile> > {
 
 	public void applyFormation(Formation f) {
 	}
-	public Array<Tile> lane(int count) {
+
+	public Array<Tile> getLane(int count) {
 		return get(count);
+	}
+
+	public Tile getCell(int x, int y) {
+		return getLane(y).get(x);
 	}
 
 	public boolean contains(Vector3 pos) {
@@ -112,20 +118,24 @@ class Grid extends Array<Array<Tile> > {
 		w += 0.5 * SQRT3 * TILE_EDGE_PXL;
 		return new Rectangle(offX, offY, w, height()).contains(pos.x, pos.y);
 	}
+
 	public boolean handleTouch(Vector3 pos) {
 		if (!contains(pos))
 			return false;
-		System.out.println("grid is pressed...");
+		// System.out.println("grid is pressed...");
+		// debugging draws
 		circle.setX(pos.x);
 		circle.setY(pos.y);
+
 		for (Iterator<Array<Tile> > liter = this.iterator(); liter.hasNext();) {
 			Array<Tile> lane = liter.next();
 			for (Iterator<Tile> titer = lane.iterator(); titer.hasNext(); ) {
 				Tile tile = titer.next();
-				tile.handleTouch(pos);
+				if (tile.handleTouch(pos))
+					return true;
 			}
 		}
-		return true;
+		return false;
 	}
 	/*
 	public Vector2 getUnitImageBase(int x, int y) {

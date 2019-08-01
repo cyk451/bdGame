@@ -12,19 +12,22 @@ class Unit {
 	// static properties
 	public boolean deployed = false;
 	/* cordinates relative to major */
-	// int[] pattern;
 
 	/* constant unit properties */
 	final private UnitProperties prop;
 
 	private int gridX, gridY;
-	private int order;
+	private int order = -1;
 	private int currentHp;
+	private boolean prepared;
 	// private float posX, posY;
 	Player owner;
+	Tile tile;
 
-	Unit(UnitProperties p) {
+	Unit(UnitProperties p, Player o) {
+		owner = o;
 		prop = p;
+		prepared = false; // for static only;
 		currentHp = prop.hitpoints;
 	}
 
@@ -50,9 +53,35 @@ class Unit {
 	}
 
 	public String getRangeText() {
-		return prop.range.asText();
+		return prop.range.toString();
 	}
 	public String getTypeText() {
-		return prop.type.asText();
+		return prop.type.toString();
+	}
+
+	public Tile getTile() { return tile; }
+	public void setTile(Tile t) { tile = t; }
+
+	public int getOrder() { return order; }
+	public void setOrder(int o) { order = o; }
+
+	public Player getOwner() { return owner; }
+
+	public boolean isDead() { return currentHp > 0; }
+
+	public boolean switchPlayer() {
+		switch (prop.type) {
+			case UNIT:
+			case TURRET:
+				return true;
+			case STATIC:
+				return prepared;
+			case INFRA:
+				return false;
+		}
+		return true;
+	}
+
+	public void engage(Unit target) {
 	}
 }

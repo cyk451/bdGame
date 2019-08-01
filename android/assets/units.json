@@ -1,0 +1,24 @@
+[
+		{
+			"name": "Zibra Tank",
+			"flavorText": "An ordinary tank",
+			"hitpoints": 100,
+			"damage": 180,
+			"range": "skip",
+			"pattern": [0, 0],
+			"type": "unit",
+			"illust_texture": "tank.png",
+			"illust_size": [48, 48]
+		},
+		{
+			"name": "Elephant Tank",
+			"flavorText": "The second ordinary tank",
+			"hitpoints": 250,
+			"damage": 40,
+			"range": "last",
+			"pattern": [0, 0],
+			"type": "unit",
+			"illust_texture": "tank-blue.png",
+			"illust_size": [48, 48]
+		}
+]

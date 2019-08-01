@@ -1,0 +1,29 @@
+{
+	"buffs": [
+		{
+			"name": "",
+			"description": "",
+			"icon_texture": "",
+			"turns": 20,
+			"//": "default|control|degradation|contDamage|immune|shield|prohibit",
+			"category": "control"
+		},
+		{
+			"name": "",
+			"description": "",
+			"icon_texture": "",
+			"turns": 20
+		}
+	],
+	"abilities": [
+		{
+			"name": "",
+			"description": "",
+			"icon_texture": "",
+			"//" : "beforeBattle(self), beforeAttacking(self, taget), afterAttacking(self, target), beforeAttacked(self, target), afterAttacked(self, target), uponDeath(self, target), uponKilling(self, target)",
+			"trigger": "beforeAttack",
+			"//" : "self, target",
+			"target": "self"
+		}
+	]
+}

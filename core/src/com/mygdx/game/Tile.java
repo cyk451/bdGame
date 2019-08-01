@@ -7,6 +7,7 @@ import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer.ShapeType;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.EarClippingTriangulator;
+import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.math.Polygon;
 import com.badlogic.gdx.math.Vector3;
 import java.util.Arrays;
@@ -14,7 +15,8 @@ import java.util.Arrays;
 
 public class Tile extends Polygon {
 	private PolygonRegion polygonRegion = null;
-	private Color color = Color.RED;
+	// private Color color = Color.RED;
+	private Player owner = null;
 	private Unit unit = null;
 
 	static Tile highlight = null;
@@ -23,10 +25,10 @@ public class Tile extends Polygon {
 
 	// private Texture dropImage;
 
-	public Tile(float[] vertices, float x, float y, Color c) {
+	public Tile(float[] vertices, float x, float y, Player player) {
 		super(vertices);
 		setPosition(x, y);
-		color = c;
+		owner = player;
 
 		// this is some constant actually
 		float []arr = getTransformedVertices();
@@ -53,17 +55,18 @@ public class Tile extends Polygon {
 		return polygonRegion;
 	}
 
-	// this simply give first vertex of polygon
-	public float[] getPosition() {
-		return base;
+	public Color getColor() {
+		return owner.getColor();
 	}
+
+	// this simply give first vertex of polygon
 	public void render(MyGdxGame game) {
 
 		ShapeRenderer sr = game.shapeRenderer;
 
 		sr.begin(ShapeType.Line);
 
-		sr.setColor((highlight == this)? Color.WHITE: color);
+		sr.setColor((highlight == this)? Color.WHITE: getColor());
 		sr.polygon(getTransformedVertices());
 		sr.end();
 
@@ -75,25 +78,53 @@ public class Tile extends Polygon {
 			return;
 		// just render here.
 		Sprite unitSprite = unit.getIllust();
+		BitmapFont font = new BitmapFont();
 
-		float []pos = getPosition();
+		float []renderSpot = Arrays.copyOf(base, 2);
+		renderSpot[0] -= unitSprite.getWidth() / 2;
+		renderSpot[1] -= unitSprite.getHeight() / 2;
 		game.batch.begin();
 		game.batch.draw(unitSprite, 
-				pos[0] - unitSprite.getWidth() / 2, 
-				pos[1] - unitSprite.getHeight() / 2);
+				renderSpot[0], renderSpot[1]);
+		font.draw(game.batch, "[" + unit.getOrder() + "]", 
+				renderSpot[0], renderSpot[1]);
 		game.batch.end();
+	}
+
+	private void clear() {
+		unit = null;
+	}
+
+	private boolean isClear() {
+		return unit == null;
+	}
+
+	public Unit getUnit() {
+		return unit;
+	}
+
+	private void setUnit(Unit toDeploy) {
+		unit = toDeploy;
+		unit.deployed = true;
+		Unit.chosen = null;
+		if (unit.getTile() != null)
+			unit.getTile().clear();
+		unit.setTile(this);
+		unit.getOwner().addUnit(unit);
 	}
 
 	public boolean handleTouch(Vector3 pos) {
 		if (contains(pos.x, pos.y)) {
 			highlight = this;
-			if (Unit.chosen != null) {
-				unit = Unit.chosen;
-				unit.deployed = true;
-				Unit.chosen = null;
-			}
-			return false;
+			if (Unit.chosen != null)
+				if (isClear()) {
+					setUnit(Unit.chosen);
+				} else {
+					Unit.chosen = unit;
+					GameScreen.infoBar.setInformation(unit);
+				}
+			return true;
 		}
-		return true;
+		return false;
 	}
 }

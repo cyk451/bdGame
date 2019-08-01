@@ -16,74 +16,48 @@ import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 
 
 public class MainMenuScreen implements Screen {
+	static public Skin skin;
+	static public MainMenuScreen instance;
 
-	final MyGdxGame game;
+	static final int BUTTON_WIDTH = 400;
+
+	static MyGdxGame game;
 	private Stage stage;
 
 	private Table table;
-	private TextButton startButton;
-	private TextButton editUnitButton;
+	private MenuButton startButton;
+	private MenuButton editUnitButton;
 
-	// OrthographicCamera camera;
+
+	class MenuButton extends TextButton {
+		final Screen screen;
+		MenuButton(String title, Screen s) {
+			super(title, MainMenuScreen.skin);
+			screen = s;
+			// setWidth(600);
+			addListener(new ClickListener(){
+				@Override 
+				public void clicked(InputEvent event, float x, float y){
+					// button.setText("You clicked the button");
+					MainMenuScreen menu = MainMenuScreen.instance;
+					menu.game.setScreen(screen);
+					menu.dispose();
+				}
+			});
+		}
+	}
 
 	public MainMenuScreen(final MyGdxGame game) {
+		super();
+		instance = this;
 		this.game = game;
+		skin = game.skin;
+	}
 
-		// camera = new OrthographicCamera();
-		// camera.setToOrtho(false, 800, 480);
-
-		stage = new Stage(new ScreenViewport());
-		Table table = new Table();
-		table.setWidth(stage.getWidth());
-
-		table.align(Align.center | Align.top);
-
-		table.setPosition(0, Gdx.graphics.getHeight());
-
-		startButton = new TextButton("New Game", game.skin);
-		editUnitButton = new TextButton("Edit Unit", game.skin);
-
-		table.padTop(30);
-        startButton.addListener(new ClickListener(){
-            @Override 
-            public void clicked(InputEvent event, float x, float y){
-                // button.setText("You clicked the button");
-				game.setScreen(new GameScreen(game));
-				dispose();
-            }
-        });
-
-		table.add(startButton).padBottom(10);
+	public void addButton(MenuButton btn) {
+		table.add(btn).prefWidth(BUTTON_WIDTH).padBottom(20).align(Align.center);
 
 		table.row();
-		// table.add(editUnitButton);
-
-		/*
-		   HorizontalGroup horizontal = new HorizontalGroup();
-		   for (int i = 0; i < 20; ++i) {
-		   horizontal.addActor(new ImageButton(new TextureRegionDrawable(new TextureRegion(dropImage))));
-		   }
-		   ScrollPane sp = new ScrollPane(horizontal, skin);
-
-		   sp.layout();
-		// table.add(new ScrollPane(horizontal));
-		// table.add(horizontal);
-		table.add(sp).expandX().minHeight(100);
-		*/
-
-		table.add(editUnitButton);
-        editUnitButton.addListener(new ClickListener(){
-            @Override 
-            public void clicked(InputEvent event, float x, float y){
-                // button.setText("You clicked the button");
-				game.setScreen(new Editor(game));
-				dispose();
-            }
-        });
-
-		stage.addActor(table);
-		Gdx.input.setInputProcessor(stage);
-
 	}
 
 	public void dispose() {
@@ -106,28 +80,35 @@ public class MainMenuScreen implements Screen {
 		
 		stage.act(Gdx.graphics.getDeltaTime());
 		stage.draw();
-
-	// camera.update();
-		/*
-		   game.batch.setProjectionMatrix(camera.combined);
-
-		   game.batch.begin();
-		   game.font.draw(game.batch, "Welcome to Drop!!! ", 100, 150);
-		   game.font.draw(game.batch, "Tap anywhere to begin!", 100, 100);
-		   game.batch.end();
-
-		   if (Gdx.input.isTouched()) {
-		   game.setScreen(new GameScreen(game));
-		   System.out.println("You pressed, but i have nothing to begin with");
-		   dispose();
-		   }
-		   */
+		stage.setDebugAll(true);
 	}
 
 	public void resize(int width, int height) {
+		System.out.println("menu resized (" + width + ", " + height + ")");
+		
+		table.setWidth(width);
+		table.setHeight(height);
+		stage.getViewport().update(width, height, true);
 	}
 
 	public void show() {
+		System.out.println("menu showed");
+
+		stage = new Stage(new ScreenViewport());
+		table = new Table();
+
+		table.align(Align.center);
+
+		startButton = new MenuButton("New Game", new GameScreen(game));
+		editUnitButton = new MenuButton("Edit Unit", new Editor(game));
+
+		table.padTop(50);
+
+		addButton(startButton);
+		addButton(editUnitButton);
+
+		stage.addActor(table);
+		Gdx.input.setInputProcessor(stage);
 	}
 	//...Rest of class omitted for succinctness.
 
