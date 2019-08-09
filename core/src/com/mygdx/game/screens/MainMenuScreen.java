@@ -1,6 +1,7 @@
-package com.mygdx.game;
+package com.mygdx.game.screen;
 // package com.badlogic.drop;
 
+import com.mygdx.game.*;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.GL20;
@@ -16,15 +17,15 @@ import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 
 
 public class MainMenuScreen implements Screen {
-	static public Skin skin;
-	static public MainMenuScreen instance;
+	static Skin skin;
+	static MainMenuScreen instance;
 
 	static final int BUTTON_WIDTH = 400;
 
 	static MyGdxGame game;
 	private Stage stage;
 
-	private Table table;
+	private Table mainTable;
 	private MenuButton startButton;
 	private MenuButton editUnitButton;
 
@@ -38,7 +39,6 @@ public class MainMenuScreen implements Screen {
 			addListener(new ClickListener(){
 				@Override 
 				public void clicked(InputEvent event, float x, float y){
-					// button.setText("You clicked the button");
 					MainMenuScreen menu = MainMenuScreen.instance;
 					menu.game.setScreen(screen);
 					menu.dispose();
@@ -54,25 +54,30 @@ public class MainMenuScreen implements Screen {
 		skin = game.skin;
 	}
 
-	public void addButton(MenuButton btn) {
-		table.add(btn).prefWidth(BUTTON_WIDTH).padBottom(20).align(Align.center);
+	private void addButton(MenuButton btn) {
+		mainTable.add(btn).prefWidth(BUTTON_WIDTH).padBottom(20).align(Align.center);
 
-		table.row();
+		mainTable.row();
 	}
 
+	@Override
 	public void dispose() {
 		stage.dispose();
 	}
 
+	@Override
 	public void resume() {
 	}
 
+	@Override
 	public void hide() {
 	}
 
+	@Override
 	public void pause() {
 	}
 
+	@Override
 	public void render(float delta) {
 
 		Gdx.gl.glClearColor(0, 0, 0.2f, 1);
@@ -83,31 +88,35 @@ public class MainMenuScreen implements Screen {
 		stage.setDebugAll(true);
 	}
 
+	@Override
 	public void resize(int width, int height) {
+		// super.resize();
 		System.out.println("menu resized (" + width + ", " + height + ")");
 		
-		table.setWidth(width);
-		table.setHeight(height);
+		mainTable.setWidth(width);
+		mainTable.setHeight(height);
 		stage.getViewport().update(width, height, true);
 	}
 
+	@Override
 	public void show() {
+		// super.show();
 		System.out.println("menu showed");
 
 		stage = new Stage(new ScreenViewport());
-		table = new Table();
+		mainTable = new Table();
 
-		table.align(Align.center);
+		mainTable.align(Align.center);
 
 		startButton = new MenuButton("New Game", new GameScreen(game));
 		editUnitButton = new MenuButton("Edit Unit", new Editor(game));
 
-		table.padTop(50);
+		mainTable.padTop(50);
 
 		addButton(startButton);
 		addButton(editUnitButton);
 
-		stage.addActor(table);
+		stage.addActor(mainTable);
 		Gdx.input.setInputProcessor(stage);
 	}
 	//...Rest of class omitted for succinctness.

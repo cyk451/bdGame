@@ -1,21 +1,20 @@
 package com.mygdx.game;
 
+import com.mygdx.game.screen.MainMenuScreen;
+import com.badlogic.gdx.assets.AssetManager;
+import com.badlogic.gdx.files.*;
 import com.badlogic.gdx.Game;
-import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.graphics.GL20;
-import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
+import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.scenes.scene2d.actions.RepeatAction;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.Stage;
-import com.badlogic.gdx.scenes.scene2d.actions.RepeatAction;
 import com.badlogic.gdx.scenes.scene2d.ui.*;
 import com.badlogic.gdx.utils.*;
-import com.badlogic.gdx.files.*;
-import com.badlogic.gdx.utils.Align;
-
-
 
 public class MyGdxGame extends Game{
 	public BitmapFont		font;
@@ -23,7 +22,9 @@ public class MyGdxGame extends Game{
 	public Skin				skin;
 	public SpriteBatch		batch;
 
-	static Array<UnitProperties> unitPropertyList;
+	static public Array<UnitProperties> unitPropertyList;
+
+	static public AssetManager mAssetManager;
 
 	@Override
 	public void create () {

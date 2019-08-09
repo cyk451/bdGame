@@ -68,6 +68,8 @@ class Grid extends Array<Array<Tile> > {
 			}
 			for (int j = 0; j < TILE_WIDTH; ++j) {
 				Tile tile = new Tile(shapePnts, x, y, owner);
+				tile.x = j;
+				tile.y = i;
 				lane.add(tile);
 				x += SQRT3 * e;
 				x += s;

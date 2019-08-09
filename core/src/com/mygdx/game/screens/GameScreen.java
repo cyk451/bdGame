@@ -1,5 +1,6 @@
-package com.mygdx.game;
+package com.mygdx.game.screen;
 
+import com.mygdx.game.*;
 import com.badlogic.gdx.audio.Music;
 import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.Gdx;
@@ -15,14 +16,9 @@ import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.scenes.scene2d.actions.RepeatAction;
-import com.badlogic.gdx.scenes.scene2d.actions.RepeatAction;
-import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.Stage;
-import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.*;
-import com.badlogic.gdx.scenes.scene2d.ui.*;
-import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.scenes.scene2d.utils.SpriteDrawable;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
@@ -38,15 +34,15 @@ public class GameScreen implements Screen {
 	static final float BOTTON_FRAME_HEIGHT		= 80;
 	static final float TOP_FRAME_HEIGHT			= 100;
 
-	private Engine				engine;
 	final MyGdxGame				game;
+	private Engine				engine;
 	public OrthographicCamera	camera;
 	public Stage				stage;
 
 	static Array<Player>	players;
-	static UnitSelectBar	unitSelectBar = null;
-	static InformationBar	infoBar = null;
+	static UnitSelectBar	unitSelectBar;
 	static Array<Unit>		unitList;
+	static public InformationBar	infoBar;
 
 	public GameScreen(final MyGdxGame g) {
 		game = g;
@@ -69,10 +65,11 @@ public class GameScreen implements Screen {
 		}
 	}
 
-	class InformationBar extends Table {
+	public class InformationBar extends Table {
 		private Stage stage;
 		private Label unitName;
 		private Label status;
+		private ImageButton pattern;
 
 		InformationBar(Stage parent, MyGdxGame game) {
 			super();
@@ -98,8 +95,8 @@ public class GameScreen implements Screen {
 		}
 
 		public void setInformation(Unit u) {
-			unitName.setText(u.getTypeText() + " - " + u.getName());
-			status.setText("HP: " + u.getHp()+ " DMG: " + u.getAtk() + "/" + "turn " + u.getRangeText());
+			unitName.setText("" + u.getType() + " - " + u.getName());
+			status.setText("HP: " + u.getHp()+ " DMG: " + u.getAtk() + "/" + "turn " + u.getRange());
 			drawAttackArea();
 		}
 
@@ -173,7 +170,7 @@ public class GameScreen implements Screen {
 	}
 
 	public void setUnitSelected(Unit u) {
-		if (!u.deployed) {
+		if (!u.isDeployed()) {
 			Unit.chosen = u;
 		}
 		infoBar.setInformation(u);
@@ -193,7 +190,7 @@ public class GameScreen implements Screen {
 			player.render(game);
 		}
 
-		engine.tick();
+		engine.tick(delta);
 
 		stage.act(Gdx.graphics.getDeltaTime());
 		stage.draw();

@@ -2,27 +2,27 @@ package com.mygdx.game;
 
 class AbilityBase {
 	enum EventType {
-		beforeBattle,
-		beforeAttacking,
-		afterAttacking,
-		beforeAttacked,
-		afterAttacked,
-		uponDeath,
-		uponKilling
+		BEFORE_BATTLE,
+		BEFORE_ATTACKING,
+		AFTER_ATTACKING,
+		BEFORE_ATTACKED,
+		AFTER_ATTACKED,
+		UPON_DEATH,
+		UPON_KILLING	
 	}
 	class Event {
 		EventType type;
 		public Unit target;
 		public Unit self;
 		public String toString() {
-			return "";
+			return type.toString();
 		}
 	}
 	AbilityBase() {}
 	
 	public void handleEvent(Event e) {
 		switch (e.type){
-			case beforeBattle:
+			case BEFORE_BATTLE:
 		}
 		return ;
 	}

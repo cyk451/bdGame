@@ -8,7 +8,7 @@ import com.badlogic.gdx.math.Vector3;
 
 
 /* must create left player first */
-class Player {
+public class Player {
 	private Grid		grid;
 	Player				opponent;
 	Grid.Formation		format;
@@ -16,7 +16,7 @@ class Player {
 	Color				color;
 	int					nextIdx;
 
-	Player(float x, float y, Player opponent, Color c) {
+	public Player(float x, float y, Player opponent, Color c) {
 		color = c;
 		// we are the bad guys!
 		if (opponent != null) {
@@ -42,9 +42,12 @@ class Player {
 		u.setOrder(orderList.size);
 	}
 
-	public void rewind() {
-		nextIdx = 0;
+	public void removeUnit(Unit u) {
+		orderList.removeValue(u, true);
+		u.setOrder(-1);
 	}
+
+	public void rewind() { nextIdx = 0; }
 
 	public Unit getNextUnit() {
 		if (nextIdx > orderList.size)

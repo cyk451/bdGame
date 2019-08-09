@@ -6,13 +6,14 @@ import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.graphics.Pixmap;
+import com.badlogic.gdx.graphics.Color;
 
 
 import com.badlogic.gdx.utils.*;
 import java.util.*;
 
 
-class UnitProperties /* implements Json.Serializable */ {
+public class UnitProperties /* implements Json.Serializable */ {
 	// static Texture testTexture = new Texture(Gdx.files.internal("bucket.png"));
 
 	static Array<UnitProperties> unitPool = new Array<UnitProperties>();
@@ -36,7 +37,22 @@ class UnitProperties /* implements Json.Serializable */ {
 	public Sprite illustSprite;
 
 	class Pattern extends Array<Vector2> {
+		final int DOT_SIZE = 3;
+		final int EDGE = 8;
+		final int ICON_SIZE = 96;
 		Pattern() { super(); }
+		Pixmap asPixmap() {
+			Pixmap result = new Pixmap(ICON_SIZE, ICON_SIZE, Pixmap.Format.RGB565);
+			result.setColor(Color.RED);
+			for (Vector2 vec: this) {
+				int x = ICON_SIZE / 2 + (int)vec.x;
+				if (((int)vec.y & 1) == 1)
+					x += EDGE / 2;
+				int y = ICON_SIZE / 2 + (int)vec.y;
+				result.fillCircle(x, y, DOT_SIZE);
+			}
+			return result;
+		}
 	}
 
 	class PatternVertexComparator implements Comparator<Vector2> {
@@ -49,8 +65,10 @@ class UnitProperties /* implements Json.Serializable */ {
 		}
 	}
 
-	UnitProperties() { }
-	UnitProperties(JsonValue json) { 
+	/* constructors */
+
+	public UnitProperties() { }
+	public UnitProperties(JsonValue json) { 
 		name = json.getString("name");
 		flavorText = json.getString("flavorText");
 		damage = json.getInt("damage");

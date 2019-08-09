@@ -4,41 +4,45 @@ import java.util.*;
 import com.badlogic.gdx.utils.*;
 // import com.badlogic.gdx.utils;
 
-class Engine {
+// Engine is a state machine. It should be called in following order.
+//
+// init
+// loop (update)
+//
+public class Engine {
 	enum Status {
 		WAITING,
 		RUNNING,
 		FINISHED
 	}
-	Array<Player> players;
-	// Player activePlayer;
-	Player firstPlayer;
-	private Status status;
-	int round;
-	int unitCounter;
-	// TODO render this queue under bottom tab
-	LinkedList<Unit> unitList;
-	long lastTurnTS;
 
-	Engine(Array<Player> p) {
-		status = Status.WAITING;
-		players = p;
-		firstPlayer = players.get(0);
+	Array<Player> mPlayers;
+	int mRound;
+	// TODO render this queue under bottom tab
+	LinkedList<Unit> mUnitQueue;
+	private long mLastTurnTS;
+	private Player mFirstPlayer;
+	private Status mStatus;
+
+	public Engine(Array<Player> p) {
+		mStatus = Status.WAITING;
+		mPlayers = p;
+		mFirstPlayer = mPlayers.get(0);
 	}
+
 	private void beforeBattle() {
 	}
 
 	public void run() {
-		status = Status.RUNNING;
-		round = 1;
-		unitCounter = 0;
+		mStatus = Status.RUNNING;
+		mRound = 1;
 		beforeBattle();
-		// unitList = formGlobalOrderList();
+		// mUnitQueue = formGlobalOrderList();
 	}
 
 	// return terminated
 	//	private boolean performRound() {
-	//		for (Unit act: unitList) {
+	//		for (Unit act: mUnitQueue) {
 	//			Array<Unit> targets = searchTargets(act, p, o);
 	//			if (act.isDead()) // well he died before his turn
 	//				continue;
@@ -55,21 +59,29 @@ class Engine {
 	//		}
 	//	}
 
-	private Array<Unit> searchTargets(Unit act) {
-		Player p = act.getOwner();
+	private Array<Unit> searchTargets(Unit u) {
+		Player p = u.getOwner();
 		Player o = p.getOpponent();
 		Array<Unit> result = new Array<Unit>();
+
+		int lane = u.getTile().y;
+
+		int max = 5;
+		do {
+			result= o.getTargets(lane, u.getRange(), u.getPattern());
+			--max;
+		} while((result.size == 0) && (max > 0));
 
 		return result;
 	}
 
 	private LinkedList<Unit> formGlobalOrderList() {
-		Player activePlayer = firstPlayer;
+		Player activePlayer = mFirstPlayer;
 		LinkedList<Unit> list = new LinkedList<Unit>();
 		int finished = 0;
 
-		players.get(0).rewind();
-		players.get(1).rewind();
+		mPlayers.get(0).rewind();
+		mPlayers.get(1).rewind();
 
 		while (finished < 2) {
 			Unit u = activePlayer.getNextUnit();
@@ -89,36 +101,44 @@ class Engine {
 
 	// here some dead unit are removed.
 	private void update() {
-		if (unitList.size() != 0) {
+		if (mUnitQueue.size() != 0) {
 			return ;
 		}
-		round += 1;
-		// show rounds
-		unitList = formGlobalOrderList();
-		// activeUnit = 0;
+		// round over, next round
+		mRound += 1;
+		mUnitQueue = formGlobalOrderList();
 	}
 
-	public void tick() {
-		if (status != Status.RUNNING)
+	public void tick(float delta) {
+		if (mStatus != Status.RUNNING)
 			return ;
 		long time = TimeUtils.nanoTime();
-		if ((time - lastTurnTS) < 1 * 1000 * 1000 * 1000) {
+		if ((time - mLastTurnTS) < 1 * 1000 * 1000 * 1000) {
 			return ;
 		}
 		update();
 
 		// Unit u = activePlayer.nextUnit();
 
-		Unit u = unitList.pop(); // pop queue
+		Unit u = mUnitQueue.pop(); // pop queue
 		Array<Unit> targets = searchTargets(u);
 
 		for (Unit t: targets) {
 			u.engage(t);
 			if (t.isDead())
-				unitList.remove(t);
+				mUnitQueue.remove(t);
 		}
+		if (u.isDead())
+			mUnitQueue.remove(u);
 
-		lastTurnTS = time;
+		mLastTurnTS = time;
 		// activeUnit += 1;
+	}
+
+	private void dealDamage(Unit attacker, Unit attacked) {
+
+		int damage = attacker.getAtk();
+		int hp = attacked.getHp();
+		return;
 	}
 }
