@@ -9,32 +9,44 @@ import com.badlogic.gdx.math.Vector3;
 
 /* must create left player first */
 public class Player {
-	private Grid		grid;
-	Player				opponent;
-	Grid.Formation		format;
+	private Grid		mGrid;
+	Player				mOpponent;
+	Formation			format;
 	Array<Unit>			orderList;
 	Color				color;
 	int					nextIdx;
+
+	public class Formation {
+		class Deployment {
+			int mX;
+			int mY;
+			Unit mUnit;
+		}
+		Array<Deployment> mOrderList;
+		Formation() {
+		}
+	}
 
 	public Player(float x, float y, Player opponent, Color c) {
 		color = c;
 		// we are the bad guys!
 		if (opponent != null) {
-			x += opponent.grid.width();
+			x += opponent.mGrid.width();
 			// c = Color.RED;
-			opponent.opponent = this;
+			opponent.mOpponent = this;
+			mOpponent = opponent;
 		}
 
-		grid = new Grid(x, y, this);
+		mGrid = new Grid(x, y, this);
 		orderList = new Array<Unit>();
 	}
 
 	public void render(MyGdxGame game) {
-		grid.render(game);
+		mGrid.render(game);
 	}
 
 	public boolean handleTouch(Vector3 pos) {
-		return grid.handleTouch(pos);
+		return mGrid.handleTouch(pos);
 	}
 
 	public void addUnit(Unit u) {
@@ -58,10 +70,10 @@ public class Player {
 	}
 
 	public Color getColor() { return color; }
-	public Player getOpponent() { return opponent; }
+	public Player getOpponent() { return mOpponent; }
 
 	private Tile getMainTargetTile(int l, UnitProperties.Range range) {
-		Array<Tile> lane = grid.getLane(l);
+		Array<Tile> lane = mGrid.getLane(l);
 		Tile result = null;
 		int from = 0, to = lane.size, inc = 1, match = 1;
 		switch(range) {
@@ -95,15 +107,11 @@ public class Player {
 		Array<Unit> list = new Array<Unit>();
 
 		Tile tile = null;
-		while (tile == null) {
+		for (int i = 5; i == 0 && tile == null; --i) {
 			tile = getMainTargetTile(lane, range);
 			lane -= 1;
 		}
 
-		/*
-		for (;;) {
-		}
-		*/
 		return list;
 	}
 }

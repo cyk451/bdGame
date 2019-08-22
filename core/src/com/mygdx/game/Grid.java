@@ -24,17 +24,6 @@ class Grid extends Array<Array<Tile> > {
 	static Circle circle = new Circle(0, 0, 3);
 	static final float SQRT3 = 1.732f;
 
-	class Formation {
-		class DeployedUnit {
-			int gridX;
-			int gridY;
-			Unit unit;
-		}
-		Array<DeployedUnit> orderList;
-		Formation() {
-		}
-	}
-
 	public Grid(float x, float y, Player p) {
 		placeTiles(x, y, p);
 	}
@@ -47,14 +36,6 @@ class Grid extends Array<Array<Tile> > {
 		// okay im lazy
 		float e = TILE_EDGE_PXL;
 		float s = TILE_SPACE_PXL;
-		float[] shapePnts = {
-			0, -e, 
-			-e * SQRT3 * 0.5f, -e * 0.5f, 
-			-e * SQRT3 * 0.5f, e * 0.5f, 
-			0, e, 
-			e * SQRT3 * 0.5f, e * 0.5f, 
-			e * SQRT3 * 0.5f, -e * 0.5f, 
-		};
 
 		float x0 = offX + 0.5f * SQRT3 * e;
 		y = offY + height() - e;
@@ -67,7 +48,7 @@ class Grid extends Array<Array<Tile> > {
 				x += 0.5 * s;
 			}
 			for (int j = 0; j < TILE_WIDTH; ++j) {
-				Tile tile = new Tile(shapePnts, x, y, owner);
+				Tile tile = new Tile(x, y, owner);
 				tile.x = j;
 				tile.y = i;
 				lane.add(tile);
@@ -97,14 +78,14 @@ class Grid extends Array<Array<Tile> > {
 	}
 
 	static public float width() {
-		return 1.00f * ( TILE_WIDTH * (1.732f * TILE_EDGE_PXL + TILE_SPACE_PXL));
+		return 1.00f * ( TILE_WIDTH * (SQRT3 * TILE_EDGE_PXL + TILE_SPACE_PXL));
 	}
 
 	static public float height() {
 		return 1.00f * ( TILE_HEIGHT * (1.5f * TILE_EDGE_PXL + TILE_SPACE_PXL) + 0.5f * TILE_EDGE_PXL);
 	}
 
-	public void applyFormation(Formation f) {
+	public void applyFormation(Player.Formation f) {
 	}
 
 	public Array<Tile> getLane(int count) {

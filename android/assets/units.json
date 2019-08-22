@@ -1,23 +1,33 @@
 [
 		{
+			"id": 1,
 			"name": "Zibra Tank",
-			"flavorText": "An ordinary tank",
+			"flavorText": "A medium-size tank",
 			"hitpoints": 100,
 			"damage": 180,
 			"range": "skip",
 			"pattern": [0, 0],
-			"type": "unit",
+			"type": "troop",
 			"illust_texture": "tank.png",
-			"illust_size": [48, 48]
+			"illust_size": [48, 48],
+			"abilities": [
+				{
+					"name": "additional_dmage",
+					"description": "Zibra tank deal %d extra damage to the targets",
+					"processor": "additionalDamageAbility",
+					"proc_args": [ 100 ]
+				}
+			]
 		},
 		{
+			"id": 2,
 			"name": "Elephant Tank",
 			"flavorText": "The second ordinary tank",
 			"hitpoints": 250,
 			"damage": 40,
 			"range": "last",
 			"pattern": [0, 0],
-			"type": "unit",
+			"type": "troop",
 			"illust_texture": "tank-blue.png",
 			"illust_size": [48, 48]
 		}

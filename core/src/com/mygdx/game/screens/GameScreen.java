@@ -123,6 +123,7 @@ public class GameScreen implements Screen {
 					// game.setScreen(new GameScreen(game));
 					// dispose();
 					System.out.println("Ok fight starts");
+					// validation check
 					engine.run();
 				}
 			});

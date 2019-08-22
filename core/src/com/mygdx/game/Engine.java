@@ -3,6 +3,10 @@ package com.mygdx.game;
 import java.util.*;
 import com.badlogic.gdx.utils.*;
 // import com.badlogic.gdx.utils;
+//
+// Terms:
+// Turn, end of action of an individual unit.
+// Round, end when all units end turns.
 
 // Engine is a state machine. It should be called in following order.
 //
@@ -31,12 +35,14 @@ public class Engine {
 	}
 
 	private void beforeBattle() {
+		mUnitQueue = formGlobalOrderList();
 	}
 
 	public void run() {
 		mStatus = Status.RUNNING;
 		mRound = 1;
 		beforeBattle();
+		// round over, next round
 		// mUnitQueue = formGlobalOrderList();
 	}
 
@@ -100,13 +106,14 @@ public class Engine {
 	}
 
 	// here some dead unit are removed.
-	private void update() {
+	private Unit getActiveUnit() {
 		if (mUnitQueue.size() != 0) {
-			return ;
+			return mUnitQueue.pop();
 		}
 		// round over, next round
-		mRound += 1;
 		mUnitQueue = formGlobalOrderList();
+		endRound();
+		return mUnitQueue.pop();
 	}
 
 	public void tick(float delta) {
@@ -116,23 +123,20 @@ public class Engine {
 		if ((time - mLastTurnTS) < 1 * 1000 * 1000 * 1000) {
 			return ;
 		}
-		update();
+		// update();
 
-		// Unit u = activePlayer.nextUnit();
+		Unit u = getActiveUnit(); // pop queue
 
-		Unit u = mUnitQueue.pop(); // pop queue
-		Array<Unit> targets = searchTargets(u);
-
-		for (Unit t: targets) {
-			u.engage(t);
-			if (t.isDead())
-				mUnitQueue.remove(t);
-		}
+		u.runTurn();
 		if (u.isDead())
 			mUnitQueue.remove(u);
 
 		mLastTurnTS = time;
-		// activeUnit += 1;
+	}
+
+	private void endRound() {
+		// do anything required for round ending
+		mRound += 1;
 	}
 
 	private void dealDamage(Unit attacker, Unit attacked) {

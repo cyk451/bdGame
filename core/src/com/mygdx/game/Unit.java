@@ -13,6 +13,11 @@ public class Unit {
 	// public boolean deployed = false;
 	/* cordinates relative to major */
 
+	class Attack {
+		private int atkPoints;
+		private int damageDealt;
+	}
+
 	/* constant unit properties */
 	final private UnitProperties prop;
 
@@ -20,12 +25,16 @@ public class Unit {
 	private int order = -1;
 	private int currentHp;
 	private boolean prepared;
+	private Unit mAttackingTarget;
+	private Unit[] mAttackingGroup;
 	// private float posX, posY;
-	Player owner;
+	Player mOwner;
 	Tile tile;
 
+	private Buff[] mBuffs;
+
 	public Unit(UnitProperties p, Player o) {
-		owner = o;
+		mOwner = o;
 		prop = p;
 		prepared = false; // for static only;
 		currentHp = prop.hitpoints;
@@ -57,7 +66,8 @@ public class Unit {
 	public int getOrder() { return order; }
 	public void setOrder(int o) { order = o; }
 
-	public Player getOwner() { return owner; }
+	public Player getOwner() { return mOwner; }
+	public UnitProperties.Pattern getPattern() { return prop.pattern; }
 
 	public boolean isDead() { return currentHp > 0; }
 
@@ -65,7 +75,7 @@ public class Unit {
 
 	public boolean switchPlayer() {
 		switch (prop.type) {
-			case UNIT:
+			case TROOP:
 			case TURRET:
 				return true;
 			case STATIC:
@@ -76,8 +86,24 @@ public class Unit {
 		return true;
 	}
 
-	public void engage(Unit target) {
+	private void engage(Unit target) {
 	}
 
-	public UnitProperties.Pattern getPattern() { return prop.pattern; }
+
+	public void getTargets() {
+		int lane = getTile().y;
+		mAttackingGroup = mOwner.getOpponent().getTargets(lane, getRange(), getPattern()).toArray();
+	}
+
+	public void runTurn() {
+		getTargets();
+
+		for (Unit t: mAttackingGroup) {
+			engage(t);
+			// if (t.isDead())
+				// mUnitQueue.remove(t);
+		}
+		// end turn
+		// for (ab: prop.abilities) { ab.do }
+	}
 }

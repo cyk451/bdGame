@@ -20,7 +20,7 @@ public class UnitProperties /* implements Json.Serializable */ {
 
 	public enum Range { FIRST, SKIP, LAST };
 
-	public enum Type { UNIT, INFRA, STATIC, TURRET };
+	public enum Type { TROOP, INFRA, STATIC, TURRET };
 
 	public String name;
 	public String flavorText;
@@ -77,7 +77,9 @@ public class UnitProperties /* implements Json.Serializable */ {
 		type = Type.valueOf(json.getString("type").toUpperCase());
 		Texture texture = new Texture(Gdx.files.internal(json.getString("illust_texture")));
 		illustSprite = new Sprite(texture);
+
 		id = unitPool.size;
+
 		unitPool.add(this);
 		JsonValue patternJson = json.get("pattern");
 		int i = 0;

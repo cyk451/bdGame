@@ -1,0 +1,17 @@
+TO be clear:
+1. where to insert the ability hooks?
+2. should abilities be an abstract? should we let developers make plugin abilities?
+3. should i let running battle to be an exclusive screen?
+4. should we let battle computation threaded??
+
+todos
+1. first, let the battle engine to run anyway.
+2. second, struct the battle abilities idea.
+3. extract formation editor from battle screen.
+4. list all abillities bd has
+
+better to have:
+1. configurable formation size
+2.
+
+
