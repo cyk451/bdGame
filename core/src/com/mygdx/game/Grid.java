@@ -92,7 +92,7 @@ class Grid extends Array<Array<Tile> > {
 		return get(count);
 	}
 
-	public Tile getCell(int x, int y) {
+	public Tile getTile(int x, int y) {
 		return getLane(y).get(x);
 	}
 

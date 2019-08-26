@@ -20,18 +20,18 @@ public class Engine {
 		FINISHED
 	}
 
-	Array<Player> mPlayers;
+	final Player []mPlayers;
 	int mRound;
 	// TODO render this queue under bottom tab
-	LinkedList<Unit> mUnitQueue;
-	private long mLastTurnTS;
-	private Player mFirstPlayer;
-	private Status mStatus;
+	LinkedList<Unit>	mUnitQueue;
+	private long		mLastTurnTS;
+	private Player		mFirstPlayer;
+	private Status		mStatus;
 
-	public Engine(Array<Player> p) {
+	public Engine(Player []p) {
 		mStatus = Status.WAITING;
 		mPlayers = p;
-		mFirstPlayer = mPlayers.get(0);
+		mFirstPlayer = mPlayers[0];
 	}
 
 	private void beforeBattle() {
@@ -42,28 +42,7 @@ public class Engine {
 		mStatus = Status.RUNNING;
 		mRound = 1;
 		beforeBattle();
-		// round over, next round
-		// mUnitQueue = formGlobalOrderList();
 	}
-
-	// return terminated
-	//	private boolean performRound() {
-	//		for (Unit act: mUnitQueue) {
-	//			Array<Unit> targets = searchTargets(act, p, o);
-	//			if (act.isDead()) // well he died before his turn
-	//				continue;
-	//
-	//			/*
-	//			for (Abilities a: act.abilities) {
-	//				a.beforeAttacking();
-	//			}
-	//			*/
-	//			for (Unit u: targets) {
-	//				act.perform(u);
-	//			}
-	//			// sleep 1 second
-	//		}
-	//	}
 
 	private Array<Unit> searchTargets(Unit u) {
 		Player p = u.getOwner();
@@ -86,8 +65,10 @@ public class Engine {
 		LinkedList<Unit> list = new LinkedList<Unit>();
 		int finished = 0;
 
-		mPlayers.get(0).rewind();
-		mPlayers.get(1).rewind();
+		mPlayers[0].rewind();
+		mPlayers[1].rewind();
+
+		System.out.println("");
 
 		while (finished < 2) {
 			Unit u = activePlayer.getNextUnit();
@@ -96,8 +77,6 @@ public class Engine {
 				activePlayer = activePlayer.getOpponent();
 				continue;
 			}
-			if (u.isDead())
-				continue;
 			list.push(u);
 			if (u.switchPlayer())
 				activePlayer = activePlayer.getOpponent();
@@ -112,6 +91,8 @@ public class Engine {
 		}
 		// round over, next round
 		mUnitQueue = formGlobalOrderList();
+		if (mUnitQueue.size() == 0)
+			return null;
 		endRound();
 		return mUnitQueue.pop();
 	}

@@ -34,22 +34,24 @@ public class GameScreen implements Screen {
 	static final float BOTTON_FRAME_HEIGHT		= 80;
 	static final float TOP_FRAME_HEIGHT			= 100;
 
-	final MyGdxGame				game;
+	final MyGdxGame				mGame;
 	private Engine				engine;
 	public OrthographicCamera	camera;
 	public Stage				stage;
 
-	static Array<Player>	players;
-	static UnitSelectBar	unitSelectBar;
-	static Array<Unit>		unitList;
+	static Player					[]mPlayers;
+	static UnitSelectBar			sUnitSelectBar;
+	static Array<Unit>				unitList;
 	static public InformationBar	infoBar;
 
 	public GameScreen(final MyGdxGame g) {
-		game = g;
+		mGame = g;
 	}
 
 	private void loadScene() {
 		// load the stage for enemy player
+		//
+		mPlayers[1].applyFormation(mGame.mFormation);
 	}
 
 	class UnitButton extends ImageButton {
@@ -78,8 +80,8 @@ public class GameScreen implements Screen {
 			align(Align.topLeft);
 			pad(5.0f);
 
-			unitName = new Label("", game.skin);
-			status = new Label("", game.skin);
+			unitName = new Label("", mGame.skin);
+			status = new Label("", mGame.skin);
 			add(unitName).align(Align.left);
 			row();
 			add(status);
@@ -137,12 +139,12 @@ public class GameScreen implements Screen {
 				ub.addListener(new ClickListener(){
 					@Override 
 					public void clicked(InputEvent event, float x, float y){
-						// System.out.println("A unit clicked...");
+						System.out.println("A unit selected...");
 						setUnitSelected(u);
 					}
 				});
 			}
-			ScrollPane sp = new ScrollPane(horizontal, game.skin);
+			ScrollPane sp = new ScrollPane(horizontal, mGame.skin);
 			// sp.setScrollbarsVisible(false);
 			// sp.setScrollbarTouch(false);
 
@@ -162,8 +164,8 @@ public class GameScreen implements Screen {
 
 	private void createUi() {
 		stage = new Stage(new ScreenViewport());
-		unitSelectBar = new UnitSelectBar(stage, game);
-		infoBar = new InformationBar(stage, game);
+		sUnitSelectBar = new UnitSelectBar(stage, mGame);
+		infoBar = new InformationBar(stage, mGame);
 		// table.add(horizontal);
 
 		Gdx.input.setInputProcessor(stage);
@@ -171,9 +173,8 @@ public class GameScreen implements Screen {
 	}
 
 	public void setUnitSelected(Unit u) {
-		if (!u.isDeployed()) {
+		if (!u.isDeployed())
 			Unit.chosen = u;
-		}
 		infoBar.setInformation(u);
 	}
 
@@ -184,11 +185,11 @@ public class GameScreen implements Screen {
 
 		camera.update();
 
-		game.batch.setProjectionMatrix(camera.combined);
-		game.shapeRenderer.setProjectionMatrix(camera.combined);
+		mGame.batch.setProjectionMatrix(camera.combined);
+		mGame.shapeRenderer.setProjectionMatrix(camera.combined);
 
-		for (Player player : players) {
-			player.render(game);
+		for (Player player : mPlayers) {
+			player.render(mGame);
 		}
 
 		engine.tick(delta);
@@ -201,7 +202,7 @@ public class GameScreen implements Screen {
 			Vector3 touchPos = new Vector3();
 			touchPos.set(Gdx.input.getX(), Gdx.input.getY(), 0);
 			camera.unproject(touchPos);
-			for (Player player : players)
+			for (Player player : mPlayers)
 				if (player.handleTouch(touchPos))
 					break;
 		}
@@ -211,18 +212,15 @@ public class GameScreen implements Screen {
 	public void resize(int width, int height) {
 		if (infoBar != null)
 			infoBar.updateGeometry(width, height);
-		if (unitSelectBar != null)
-			unitSelectBar.updateGeometry(width, height);
+		if (sUnitSelectBar != null)
+			sUnitSelectBar.updateGeometry(width, height);
 		stage.getViewport().update(width, height, true);
 	}
 
 	private void spawnPlayers() {
-		players = new Array<Player>(2);
-
 		Player us = new Player(0, BOTTON_FRAME_HEIGHT, null, Color.BLUE);
 		Player them = new Player(0, BOTTON_FRAME_HEIGHT, us, Color.RED);
-		players.add(us);
-		players.add(them);
+		mPlayers = new Player[]{us, them};
 	}
 
 	@Override
@@ -235,10 +233,10 @@ public class GameScreen implements Screen {
 		spawnPlayers();
 
 		unitList = new Array<Unit>();
-		for (UnitProperties up: MyGdxGame.unitPropertyList)
-			unitList.add(new Unit(up, players.get(0)));
+		for (UnitProperties up: mGame.mUnitPropList)
+			unitList.add(new Unit(up, mPlayers[0]));
 
-		engine = new Engine(players);
+		engine = new Engine(mPlayers);
 
 		createUi();
 

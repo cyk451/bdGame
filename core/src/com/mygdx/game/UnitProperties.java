@@ -12,27 +12,34 @@ import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.utils.*;
 import java.util.*;
 
+/*
+ * UnitProperties desribes the static status of a unit.
+ *
+ * UnitProperties having static information about a unit that won't change
+ * after resouce files are loaded. A Unit, in contrast, may contain stats that
+ * can vary duing the battle. It's also possible multiple unit instances
+ * initiated from the same UnitProperty.
+ */
 
-public class UnitProperties /* implements Json.Serializable */ {
+public class UnitProperties {
 	// static Texture testTexture = new Texture(Gdx.files.internal("bucket.png"));
 
 	static Array<UnitProperties> unitPool = new Array<UnitProperties>();
 
 	public enum Range { FIRST, SKIP, LAST };
-
 	public enum Type { TROOP, INFRA, STATIC, TURRET };
 
 	public String name;
 	public String flavorText;
 
 	// this id is given when resource loaded; should match its index in unitPool.
-	public int id;
-	public int hitpoints;
-	public int damage;
-	public Pattern pattern;
-	public Pixmap patternTexture; // show how the range is
-	public Range range;
-	public Type type;
+	public int		id;
+	public int		hitpoints;
+	public int		damage;
+	public Pattern	pattern;
+	public Pixmap	patternTexture; // show user how the range is
+	public Range	range;
+	public Type		type;
 
 	public Sprite illustSprite;
 
@@ -66,7 +73,6 @@ public class UnitProperties /* implements Json.Serializable */ {
 	}
 
 	/* constructors */
-
 	public UnitProperties() { }
 	public UnitProperties(JsonValue json) { 
 		name = json.getString("name");
@@ -98,12 +104,5 @@ public class UnitProperties /* implements Json.Serializable */ {
 		// Collections.sort(pattern, new PatternVertexComparator());
 	}
 
-
-	/*
-	public void read(Json json, JsonValue jsonData) {
-	}
-
-	public void write(Json json) {
-	}
-*/
+	public String getName() { return name; }
 }

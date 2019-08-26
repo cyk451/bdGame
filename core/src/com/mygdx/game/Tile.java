@@ -53,7 +53,6 @@ public class Tile extends Polygon {
 		};
 		mRenderSpot[0] *= 0.5;
 		mRenderSpot[1] *= 0.5;
-		// System.out.println("Coord " + base[0] + ", " + base[1]);
 	}
 
 
@@ -75,45 +74,38 @@ public class Tile extends Polygon {
 			renderUnit(game);
 	}
 
-	private void renderUnit(MyGdxGame game) {
-		// just render here.
-		Sprite unitSprite = mUnit.getIllust();
-		BitmapFont font = new BitmapFont();
-
-		game.batch.begin();
-		game.batch.draw(unitSprite, 
-				mRenderSpot[0], mRenderSpot[1]);
-		font.draw(game.batch, "[" + mUnit.getOrder() + "]", 
-				mRenderSpot[0], mRenderSpot[1]);
-		game.batch.end();
-	}
-
-	private void clear() { 
-		Sprite unitSprite = mUnit.getIllust();
-		mRenderSpot[1] += unitSprite.getHeight() / 2;
-		mRenderSpot[0] += unitSprite.getWidth() / 2;
-
-		mUnit = null; 
-	}
-
-	private boolean isClear() { return mUnit == null; }
-
 	public Color getColor() { return mOwner.getColor(); }
 
 	public Unit getUnit() { return mUnit; }
 
-	private void setUnit(Unit toBeDeployed) {
-		if (!isClear())
+	// return boolean: setUnit successful.
+	public boolean setUnit(Unit toBeDeployed) {
+		if (mUnit == toBeDeployed)
+			return false;
+
+		if (toBeDeployed.getOwner() != mOwner)
+			return false;
+
+		System.out.println("add unit");
+
+		if (!isClear()) {
+			mUnit.setTile(null);
 			mOwner.removeUnit(mUnit);
+			clear();
+		}
 		if (toBeDeployed.isDeployed())
 			toBeDeployed.getTile().clear();
 		else
 			mOwner.addUnit(toBeDeployed);
 		toBeDeployed.setTile(this);
 
+		mUnit = toBeDeployed;
+
 		Sprite unitSprite = mUnit.getIllust();
 		mRenderSpot[1] -= unitSprite.getHeight() / 2;
 		mRenderSpot[0] -= unitSprite.getWidth() / 2;
+
+		return true;
 	}
 
 	/*
@@ -124,22 +116,49 @@ public class Tile extends Polygon {
 	 *    X    X         X    X
 	 */
 
+	// return boolean: is touch event handled.
 	public boolean handleTouch(Vector3 pos) {
 		if (contains(pos.x, pos.y)) {
+			// System.out.println("handling");
 			highlight = this;
 
 			if (Unit.chosen != null) {
-				setUnit(Unit.chosen);
-				Unit.chosen = null;
+				if (setUnit(Unit.chosen))
+					Unit.chosen = null;
 				return true;
 			} 
 
 			if (!isClear()) {
+				System.out.println("select it");
 				Unit.chosen = mUnit;
 				GameScreen.infoBar.setInformation(mUnit);
 			}
 			return true;
 		}
 		return false;
+	}
+
+	private boolean isClear() { return mUnit == null; }
+
+	private void clear() { 
+		Sprite unitSprite = mUnit.getIllust();
+
+		mRenderSpot[1] += unitSprite.getHeight() / 2;
+		mRenderSpot[0] += unitSprite.getWidth() / 2;
+		mUnit = null; 
+	}
+
+	private void renderUnit(MyGdxGame game) {
+		// just render here.
+		Sprite unitSprite = mUnit.getIllust();
+		BitmapFont font = new BitmapFont();
+
+		game.batch.begin();
+
+		game.batch.draw(unitSprite, mRenderSpot[0], mRenderSpot[1]);
+		font.draw(game.batch, "[" + mUnit.getOrder() + "]", 
+				mRenderSpot[0], mRenderSpot[1]);
+
+		game.batch.end();
 	}
 }

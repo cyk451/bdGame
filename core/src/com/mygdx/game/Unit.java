@@ -4,6 +4,7 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.graphics.g2d.Sprite;
+import com.badlogic.gdx.utils.*;
 
 public class Unit {
 	// static public Texture testTexture = new Texture(Gdx.files.internal("bucket.png"));
@@ -26,7 +27,10 @@ public class Unit {
 	private int currentHp;
 	private boolean prepared;
 	private Unit mAttackingTarget;
-	private Unit[] mAttackingGroup;
+	/* 
+	 * We would need to 
+	 */
+	private Array<Unit> mAttackingGroup;
 	// private float posX, posY;
 	Player mOwner;
 	Tile tile;
@@ -69,9 +73,9 @@ public class Unit {
 	public Player getOwner() { return mOwner; }
 	public UnitProperties.Pattern getPattern() { return prop.pattern; }
 
-	public boolean isDead() { return currentHp > 0; }
+	public boolean isDead() { return currentHp < 0; }
 
-	public boolean isDeployed() { return tile == null; }
+	public boolean isDeployed() { return tile != null; }
 
 	public boolean switchPlayer() {
 		switch (prop.type) {
@@ -92,7 +96,7 @@ public class Unit {
 
 	public void getTargets() {
 		int lane = getTile().y;
-		mAttackingGroup = mOwner.getOpponent().getTargets(lane, getRange(), getPattern()).toArray();
+		mAttackingGroup = mOwner.getOpponent().getTargets(lane, getRange(), getPattern());
 	}
 
 	public void runTurn() {

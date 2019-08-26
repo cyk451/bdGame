@@ -15,6 +15,7 @@ import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.*;
 import com.badlogic.gdx.utils.*;
+import java.util.*;
 
 public class MyGdxGame extends Game{
 	public BitmapFont		font;
@@ -22,7 +23,10 @@ public class MyGdxGame extends Game{
 	public Skin				skin;
 	public SpriteBatch		batch;
 
-	static public Array<UnitProperties> unitPropertyList;
+	public Array<UnitProperties>			mUnitPropList;
+	public Player.Formation mFormation;
+	static private HashMap<String, UnitProperties>	sNamedPropMap;
+
 
 	static public AssetManager mAssetManager;
 
@@ -43,17 +47,30 @@ public class MyGdxGame extends Game{
 
 	private void loadResources() {
 
-		Json json = new Json();
-		FileHandle unitFile = Gdx.files.internal("units.json");
-		String text = unitFile.readString();
+		// use resource manager?
+		String text = Gdx.files.internal("units.json").readString();
+
+		sNamedPropMap = new HashMap<String, UnitProperties>();
 
 		JsonValue jsonRoot = new JsonReader().parse(text);
-		unitPropertyList = new Array<UnitProperties>();
+		mUnitPropList = new Array<UnitProperties>();
 		for (JsonValue unitJson : jsonRoot.iterator()) {
 			UnitProperties up = new UnitProperties(unitJson);
-			unitPropertyList.add(up);
+			mUnitPropList.add(up);
+			Gdx.app.log("the name ", up.getName());
+			sNamedPropMap.put(up.getName(), up);
 		}
+
+		text = Gdx.files.internal("test-formation.json").readString();
+
+		jsonRoot = new JsonReader().parse(text);
+		mFormation = Player.parseFormation(jsonRoot);
 	}
+
+	public static UnitProperties getUnitPropByName(String name) {
+		return sNamedPropMap.get(name);
+	}
+
 
 	@Override
 	public void render () {

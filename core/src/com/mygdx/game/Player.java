@@ -1,10 +1,10 @@
 package com.mygdx.game;
 
-import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer.ShapeType;
 import com.badlogic.gdx.math.Vector3;
+import com.badlogic.gdx.utils.*;
 
 
 /* must create left player first */
@@ -15,17 +15,6 @@ public class Player {
 	Array<Unit>			orderList;
 	Color				color;
 	int					nextIdx;
-
-	public class Formation {
-		class Deployment {
-			int mX;
-			int mY;
-			Unit mUnit;
-		}
-		Array<Deployment> mOrderList;
-		Formation() {
-		}
-	}
 
 	public Player(float x, float y, Player opponent, Color c) {
 		color = c;
@@ -51,22 +40,35 @@ public class Player {
 
 	public void addUnit(Unit u) {
 		orderList.add(u);
+
 		u.setOrder(orderList.size);
+		System.out.println(u + " is " + u.getOrder());
 	}
 
-	public void removeUnit(Unit u) {
-		orderList.removeValue(u, true);
-		u.setOrder(-1);
+	public void removeUnit(Unit toBeRemoved) {
+		orderList.removeValue(toBeRemoved, true);
+		toBeRemoved.setOrder(-1);
+
+		// reorder units
+		int i = 1;
+		for (Unit u: orderList) { u.setOrder(i++); }
+		System.out.println(toBeRemoved + " back " + toBeRemoved.getOrder());
 	}
 
 	public void rewind() { nextIdx = 0; }
 
 	public Unit getNextUnit() {
-		if (nextIdx > orderList.size)
+		if (nextIdx >= orderList.size)
 			return null;
-		Unit result = orderList.get(nextIdx);
-		nextIdx += 1;
-		return result;
+		Unit result;
+		do {
+			result = orderList.get(nextIdx);
+			nextIdx += 1;
+		} while (result.isDead() && nextIdx < orderList.size);
+		if (nextIdx < orderList.size)
+			return result;
+		else
+			return null;
 	}
 
 	public Color getColor() { return color; }
@@ -114,4 +116,54 @@ public class Player {
 
 		return list;
 	}
+
+	static public Formation parseFormation(JsonValue root) {
+		return new Formation(root);
+	}
+
+	public static class Formation {
+		public class Deployment {
+			int mX;
+			int mY;
+			UnitProperties mUnitProp;
+		}
+
+		Array<Deployment> mOrderList;
+
+		Formation() {
+		}
+
+		Formation(JsonValue root) {
+			mOrderList = new Array<Deployment>();
+			for (JsonValue item: root.iterator()) {
+				Deployment dep = new Deployment();
+				int []pos = new int[]{0, 0};
+				int i = 0;
+				for (JsonValue p: item.get("position").iterator()) {
+					if (i == 0)
+						dep.mX = p.asInt();
+					else
+						dep.mY = p.asInt();
+					++i;
+				}
+
+				String unitName = item.getString("unitName");
+
+				dep.mUnitProp = MyGdxGame.getUnitPropByName(unitName);
+
+				mOrderList.add(dep);
+			}
+		}
+
+		public boolean validate() {
+			return true;
+		}
+	}
+
+	public void applyFormation(Formation f) {
+		for (Formation.Deployment d: f.mOrderList) {
+			mGrid.getTile(d.mX, d.mY).setUnit(new Unit(d.mUnitProp, this));
+		}
+	}
+
 }
