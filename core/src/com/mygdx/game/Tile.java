@@ -7,7 +7,6 @@ import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer.ShapeType;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.EarClippingTriangulator;
-import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.math.Polygon;
 import com.badlogic.gdx.math.Vector3;
 import java.util.Arrays;
@@ -71,7 +70,8 @@ public class Tile extends Polygon {
 		sr.end();
 
 		if (mUnit != null)
-			renderUnit(game);
+			mUnit.render(mRenderSpot, game);
+			// renderUnit(game);
 	}
 
 	public Color getColor() { return mOwner.getColor(); }
@@ -92,6 +92,7 @@ public class Tile extends Polygon {
 			mUnit.setTile(null);
 			mOwner.removeUnit(mUnit);
 			clear();
+			// TODO swap two units if toBeDeployed is also deployed
 		}
 		if (toBeDeployed.isDeployed())
 			toBeDeployed.getTile().clear();
@@ -146,19 +147,5 @@ public class Tile extends Polygon {
 		mRenderSpot[1] += unitSprite.getHeight() / 2;
 		mRenderSpot[0] += unitSprite.getWidth() / 2;
 		mUnit = null; 
-	}
-
-	private void renderUnit(MyGdxGame game) {
-		// just render here.
-		Sprite unitSprite = mUnit.getIllust();
-		BitmapFont font = new BitmapFont();
-
-		game.batch.begin();
-
-		game.batch.draw(unitSprite, mRenderSpot[0], mRenderSpot[1]);
-		font.draw(game.batch, "[" + mUnit.getOrder() + "]", 
-				mRenderSpot[0], mRenderSpot[1]);
-
-		game.batch.end();
 	}
 }

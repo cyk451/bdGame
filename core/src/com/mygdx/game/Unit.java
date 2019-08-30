@@ -4,6 +4,7 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.graphics.g2d.Sprite;
+import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.utils.*;
 
 public class Unit {
@@ -26,14 +27,11 @@ public class Unit {
 	private int order = -1;
 	private int currentHp;
 	private boolean prepared;
-	private Unit mAttackingTarget;
-	/* 
-	 * We would need to 
-	 */
+	private Unit mMainTarget;
 	private Array<Unit> mAttackingGroup;
 	// private float posX, posY;
 	Player mOwner;
-	Tile tile;
+	Tile mTile;
 
 	private Buff[] mBuffs;
 
@@ -49,13 +47,13 @@ public class Unit {
 		gridY = y;
 	}
 
-	public String getName() {
-		return prop.name;
-	}
+	public int getX() { return mTile.x; }
+	public int getY() { return mTile.y; }
 
-	public int getHp() {
-		return currentHp;
-	}
+	public String getName() { return prop.name; }
+
+	public int getHp() { return currentHp; }
+	public void setHp(int hp) { currentHp = hp; }
 
 	public int getAtk() { return prop.damage; }
 
@@ -64,8 +62,8 @@ public class Unit {
 	public UnitProperties.Range getRange() { return prop.range; }
 	public UnitProperties.Type getType() { return prop.type; }
 
-	public Tile getTile() { return tile; }
-	public void setTile(Tile t) { tile = t; }
+	public Tile getTile() { return mTile; }
+	public void setTile(Tile t) { mTile = t; }
 
 	public int getOrder() { return order; }
 	public void setOrder(int o) { order = o; }
@@ -75,7 +73,7 @@ public class Unit {
 
 	public boolean isDead() { return currentHp < 0; }
 
-	public boolean isDeployed() { return tile != null; }
+	public boolean isDeployed() { return mTile != null; }
 
 	public boolean switchPlayer() {
 		switch (prop.type) {
@@ -91,6 +89,12 @@ public class Unit {
 	}
 
 	private void engage(Unit target) {
+		int damage = getAtk();
+		int hp = target.getHp();
+
+		hp -= damage;
+
+		target.setHp(hp);
 	}
 
 
@@ -109,5 +113,24 @@ public class Unit {
 		}
 		// end turn
 		// for (ab: prop.abilities) { ab.do }
+	}
+
+	public void render(float[] spot, MyGdxGame game) {
+		// just render here.
+		Sprite unitSprite = getIllust();
+		BitmapFont font = new BitmapFont();
+
+		game.batch.begin();
+
+		drawHpBar(game);
+
+		game.batch.draw(unitSprite, spot[0], spot[1]);
+		font.draw(game.batch, "[" + getOrder() + "]", 
+				spot[0], spot[1]);
+
+		game.batch.end();
+	}
+
+	public void drawHpBar(MyGdxGame game) {
 	}
 }

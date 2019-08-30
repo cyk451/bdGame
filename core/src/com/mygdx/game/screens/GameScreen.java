@@ -218,8 +218,8 @@ public class GameScreen implements Screen {
 	}
 
 	private void spawnPlayers() {
-		Player us = new Player(0, BOTTON_FRAME_HEIGHT, null, Color.BLUE);
-		Player them = new Player(0, BOTTON_FRAME_HEIGHT, us, Color.RED);
+		Player us = new Player(0, BOTTON_FRAME_HEIGHT, null, Color.BLUE).setName("Player");
+		Player them = new Player(0, BOTTON_FRAME_HEIGHT, us, Color.RED).setName("Enemy");
 		mPlayers = new Player[]{us, them};
 	}
 

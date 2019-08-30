@@ -3,18 +3,19 @@ package com.mygdx.game;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer.ShapeType;
-import com.badlogic.gdx.math.Vector3;
+import com.badlogic.gdx.math.*;
 import com.badlogic.gdx.utils.*;
 
 
 /* must create left player first */
 public class Player {
 	private Grid		mGrid;
+	String				mName;
 	Player				mOpponent;
 	Formation			format;
 	Array<Unit>			orderList;
 	Color				color;
-	int					nextIdx;
+	int					mIndex;
 
 	public Player(float x, float y, Player opponent, Color c) {
 		color = c;
@@ -29,6 +30,10 @@ public class Player {
 		mGrid = new Grid(x, y, this);
 		orderList = new Array<Unit>();
 	}
+
+	public Player setName(String name) { mName = name; return this; }
+	public String getName() { return mName; }
+
 
 	public void render(MyGdxGame game) {
 		mGrid.render(game);
@@ -55,26 +60,26 @@ public class Player {
 		System.out.println(toBeRemoved + " back " + toBeRemoved.getOrder());
 	}
 
-	public void rewind() { nextIdx = 0; }
+	public void rewind() { mIndex = 0; }
 
 	public Unit getNextUnit() {
-		if (nextIdx >= orderList.size)
+		if (mIndex >= orderList.size)
 			return null;
 		Unit result;
 		do {
-			result = orderList.get(nextIdx);
-			nextIdx += 1;
-		} while (result.isDead() && nextIdx < orderList.size);
-		if (nextIdx < orderList.size)
-			return result;
-		else
-			return null;
+			System.out.println(getName() + " popping " + mIndex);
+			result = orderList.get(mIndex);
+			mIndex += 1;
+			if (!result.isDead())
+				return result;
+		} while (mIndex < orderList.size);
+		return null;
 	}
 
 	public Color getColor() { return color; }
 	public Player getOpponent() { return mOpponent; }
 
-	private Tile getMainTargetTile(int l, UnitProperties.Range range) {
+	public Tile getMainTargetTile(int l, UnitProperties.Range range) {
 		Array<Tile> lane = mGrid.getLane(l);
 		Tile result = null;
 		int from = 0, to = lane.size, inc = 1, match = 1;
@@ -101,6 +106,19 @@ public class Player {
 		return result;
 	}
 
+	public Array<Unit> getTargets(Unit main) {
+		Array<Unit> list = new Array<Unit>();
+
+		int x = main.getX(), y = main.getY();
+		for (GridPoint2 offset: main.getPattern()) {
+			Tile t = mGrid.getTile(x + offset.x, y + offset.y);
+			if (t.getUnit() != null)
+				list.add(t.getUnit());
+		}
+		return list;
+
+	}
+
 	public Array<Unit> getTargets(
 			int lane,
 			UnitProperties.Range range, 
@@ -108,10 +126,16 @@ public class Player {
 	{
 		Array<Unit> list = new Array<Unit>();
 
+		if (lane < 0 || lane >= Grid.HEIGHT)
+			return list;
+
 		Tile tile = null;
-		for (int i = 5; i == 0 && tile == null; --i) {
-			tile = getMainTargetTile(lane, range);
-			lane -= 1;
+		for (int i = 0; i < Grid.HEIGHT; ++i) {
+			tile = getMainTargetTile((lane + i) % Grid.HEIGHT, range);
+			if (tile == null) 
+				continue;
+			list.add(tile.getUnit());
+			break;
 		}
 
 		return list;

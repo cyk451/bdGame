@@ -4,7 +4,7 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.graphics.g2d.Sprite;
-import com.badlogic.gdx.math.Vector2;
+import com.badlogic.gdx.math.GridPoint2;
 import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Color;
 
@@ -43,7 +43,7 @@ public class UnitProperties {
 
 	public Sprite illustSprite;
 
-	class Pattern extends Array<Vector2> {
+	class Pattern extends Array<GridPoint2> {
 		final int DOT_SIZE = 3;
 		final int EDGE = 8;
 		final int ICON_SIZE = 96;
@@ -51,7 +51,7 @@ public class UnitProperties {
 		Pixmap asPixmap() {
 			Pixmap result = new Pixmap(ICON_SIZE, ICON_SIZE, Pixmap.Format.RGB565);
 			result.setColor(Color.RED);
-			for (Vector2 vec: this) {
+			for (GridPoint2 vec: this) {
 				int x = ICON_SIZE / 2 + (int)vec.x;
 				if (((int)vec.y & 1) == 1)
 					x += EDGE / 2;
@@ -62,9 +62,9 @@ public class UnitProperties {
 		}
 	}
 
-	class PatternVertexComparator implements Comparator<Vector2> {
+	class PatternVertexComparator implements Comparator<GridPoint2> {
 		@Override
-		public int compare(Vector2 l, Vector2 r) {
+		public int compare(GridPoint2 l, GridPoint2 r) {
 			if (l.y == r.y) {
 				return (int)(l.x - r.x);
 			}
@@ -89,13 +89,13 @@ public class UnitProperties {
 		unitPool.add(this);
 		JsonValue patternJson = json.get("pattern");
 		int i = 0;
-		Vector2 vec = new Vector2();
+		GridPoint2 vec = new GridPoint2();
 		pattern = new Pattern();
 		for (JsonValue patVertJson : patternJson.iterator()) {
 			if ((i & 1) == 0) {
-				vec.x = (patVertJson.asInt());
+				vec.x = patVertJson.asInt();
 			} else {
-				vec.y = (patVertJson.asInt());
+				vec.y = patVertJson.asInt();
 				pattern.add(vec);
 			}
 			i += 1;

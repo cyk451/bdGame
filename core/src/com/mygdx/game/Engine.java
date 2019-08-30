@@ -68,19 +68,22 @@ public class Engine {
 		mPlayers[0].rewind();
 		mPlayers[1].rewind();
 
-		System.out.println("");
 
 		while (finished < 2) {
+
+			System.out.println("acting " + activePlayer.getName() + " popping");
 			Unit u = activePlayer.getNextUnit();
 			if (u == null) {
 				finished += 1;
 				activePlayer = activePlayer.getOpponent();
 				continue;
 			}
+			System.out.println(activePlayer.getName() + " enqueue one unit");
 			list.push(u);
 			if (u.switchPlayer())
 				activePlayer = activePlayer.getOpponent();
 		}
+		System.out.println("formGlobalOrderList: list size " + list.size());
 		return list;
 	}
 
@@ -108,9 +111,12 @@ public class Engine {
 
 		Unit u = getActiveUnit(); // pop queue
 
+		System.out.println("tick: " + time + ": " + u.getName() + " acting.");
 		u.runTurn();
+		/*
 		if (u.isDead())
 			mUnitQueue.remove(u);
+			*/
 
 		mLastTurnTS = time;
 	}
