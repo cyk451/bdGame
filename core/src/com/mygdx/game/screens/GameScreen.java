@@ -32,26 +32,26 @@ public class GameScreen implements Screen {
 	static final float DEFAULT_SCREEN_HEIGHT	= 480;
 	static final float DEFAULT_SCREEN_WIDTH		= 800;
 	static final float BOTTON_FRAME_HEIGHT		= 80;
-	static final float TOP_FRAME_HEIGHT			= 100;
+	static final float TOP_FRAME_HEIGHT		= 100;
 
-	final MyGdxGame				mGame;
-	private Engine				engine;
-	public OrthographicCamera	camera;
-	public Stage				stage;
+	final MyGdxGame			mGame;
+	private Engine			mEngine;
+	private UnitSelectBar		mUnitSelectBar;
+	public OrthographicCamera	mCamera;
+	public Stage			mStage;
 
-	static Player					[]mPlayers;
-	static UnitSelectBar			sUnitSelectBar;
-	static Array<Unit>				unitList;
-	static public InformationBar	infoBar;
+	static public InformationBar	sInfoBar;
+	static Player			[]sPlayers;
+	static Array<Unit>		sUnitList;
 
 	public GameScreen(final MyGdxGame g) {
 		mGame = g;
 	}
 
 	private void loadScene() {
-		// load the stage for enemy player
+		// load the mStage for enemy player
 		//
-		mPlayers[1].applyFormation(mGame.mFormation);
+		sPlayers[1].applyFormation(mGame.mFormation);
 	}
 
 	class UnitButton extends ImageButton {
@@ -68,25 +68,25 @@ public class GameScreen implements Screen {
 	}
 
 	public class InformationBar extends Table {
-		private Stage stage;
-		private Label unitName;
-		private Label status;
-		private ImageButton pattern;
+		private Stage mStage;
+		private Label mUnitNameLabel;
+		private Label mStatusLabel;
+		// private ImageButton pattern;
 
-		InformationBar(Stage parent, MyGdxGame game) {
+		InformationBar(Stage parent) {
 			super();
-			stage = parent;
+			mStage = parent;
 
 			align(Align.topLeft);
 			pad(5.0f);
 
-			unitName = new Label("", mGame.skin);
-			status = new Label("", mGame.skin);
-			add(unitName).align(Align.left);
+			mUnitNameLabel = new Label("", mGame.getUiSkin());
+			mStatusLabel = new Label("", mGame.getUiSkin());
+			add(mUnitNameLabel).align(Align.left);
 			row();
-			add(status);
+			add(mStatusLabel);
 
-			stage.addActor(this);
+			mStage.addActor(this);
 		}
 
 		void updateGeometry(float w, float h) {
@@ -97,8 +97,8 @@ public class GameScreen implements Screen {
 		}
 
 		public void setInformation(Unit u) {
-			unitName.setText("" + u.getType() + " - " + u.getName());
-			status.setText("HP: " + u.getHp()+ " DMG: " + u.getAtk() + "/" + "turn " + u.getRange());
+			mUnitNameLabel.setText("" + u.getType() + " - " + u.getName());
+			mStatusLabel.setText("HP: " + u.getHp()+ " DMG: " + u.getAtk() + "/" + "turn " + u.getRange());
 			drawAttackArea();
 		}
 
@@ -108,16 +108,16 @@ public class GameScreen implements Screen {
 	}
 
 	class UnitSelectBar extends Table {
-		private Stage stage;
+		private Stage mStage;
 
-		UnitSelectBar(Stage parent, MyGdxGame game) {
+		UnitSelectBar(Stage parent) {
 			super();
-			stage = parent;
+			mStage = parent;
 
 			align(Align.left);
 			pad(5.0f);
 
-			Button startButton = new TextButton("Fight", game.skin);
+			Button startButton = new TextButton("Fight", mGame.getUiSkin());
 			startButton.addListener(new ClickListener(){
 				@Override 
 				public void clicked(InputEvent event, float x, float y){
@@ -126,13 +126,13 @@ public class GameScreen implements Screen {
 					// dispose();
 					System.out.println("Ok fight starts");
 					// validation check
-					engine.run();
+					mEngine.run();
 				}
 			});
 
 			add(startButton);
 			HorizontalGroup horizontal = new HorizontalGroup();
-			for (final Unit u : unitList) {
+			for (final Unit u : sUnitList) {
 				UnitButton ub = new UnitButton(u);
 				// ub.setHeight(48);
 				horizontal.addActor(ub);
@@ -144,12 +144,12 @@ public class GameScreen implements Screen {
 					}
 				});
 			}
-			ScrollPane sp = new ScrollPane(horizontal, mGame.skin);
+			ScrollPane sp = new ScrollPane(horizontal, mGame.getUiSkin());
 			// sp.setScrollbarsVisible(false);
 			// sp.setScrollbarTouch(false);
 
 			add(sp);
-			stage.addActor(this);
+			mStage.addActor(this);
 		}
 
 		void updateGeometry(float w, float h) {
@@ -163,19 +163,19 @@ public class GameScreen implements Screen {
 	}
 
 	private void createUi() {
-		stage = new Stage(new ScreenViewport());
-		sUnitSelectBar = new UnitSelectBar(stage, mGame);
-		infoBar = new InformationBar(stage, mGame);
+		mStage = new Stage(new ScreenViewport());
+		mUnitSelectBar = new UnitSelectBar(mStage);
+		sInfoBar = new InformationBar(mStage);
 		// table.add(horizontal);
 
-		Gdx.input.setInputProcessor(stage);
+		Gdx.input.setInputProcessor(mStage);
 
 	}
 
 	public void setUnitSelected(Unit u) {
 		if (!u.isDeployed())
 			Unit.chosen = u;
-		infoBar.setInformation(u);
+		sInfoBar.setInformation(u);
 	}
 
 	@Override
@@ -183,26 +183,26 @@ public class GameScreen implements Screen {
 		Gdx.gl.glClearColor(0, 0, 0, 1);
 		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
-		camera.update();
+		mCamera.update();
 
-		mGame.batch.setProjectionMatrix(camera.combined);
-		mGame.shapeRenderer.setProjectionMatrix(camera.combined);
+		mGame.mBatch.setProjectionMatrix(mCamera.combined);
+		mGame.mShapeRenderer.setProjectionMatrix(mCamera.combined);
 
-		for (Player player : mPlayers) {
+		for (Player player : sPlayers) {
 			player.render(mGame);
 		}
 
-		engine.tick(delta);
+		mEngine.tick(delta);
 
-		stage.act(Gdx.graphics.getDeltaTime());
-		stage.draw();
-		stage.setDebugAll(true);
+		mStage.act(Gdx.graphics.getDeltaTime());
+		mStage.draw();
+		mStage.setDebugAll(true);
 
 		if (Gdx.input.isTouched()) {
 			Vector3 touchPos = new Vector3();
 			touchPos.set(Gdx.input.getX(), Gdx.input.getY(), 0);
-			camera.unproject(touchPos);
-			for (Player player : mPlayers)
+			mCamera.unproject(touchPos);
+			for (Player player : sPlayers)
 				if (player.handleTouch(touchPos))
 					break;
 		}
@@ -210,33 +210,33 @@ public class GameScreen implements Screen {
 
 	@Override
 	public void resize(int width, int height) {
-		if (infoBar != null)
-			infoBar.updateGeometry(width, height);
-		if (sUnitSelectBar != null)
-			sUnitSelectBar.updateGeometry(width, height);
-		stage.getViewport().update(width, height, true);
+		if (sInfoBar != null)
+			sInfoBar.updateGeometry(width, height);
+		if (mUnitSelectBar != null)
+			mUnitSelectBar.updateGeometry(width, height);
+		mStage.getViewport().update(width, height, true);
 	}
 
 	private void spawnPlayers() {
 		Player us = new Player(0, BOTTON_FRAME_HEIGHT, null, Color.BLUE).setName("Player");
 		Player them = new Player(0, BOTTON_FRAME_HEIGHT, us, Color.RED).setName("Enemy");
-		mPlayers = new Player[]{us, them};
+		sPlayers = new Player[]{us, them};
 	}
 
 	@Override
 	public void show() {
 		// start the playback of the background music
 		// when the screen is shown
-		camera = new OrthographicCamera();
-		camera.setToOrtho(false, DEFAULT_SCREEN_WIDTH, DEFAULT_SCREEN_HEIGHT);
+		mCamera = new OrthographicCamera();
+		mCamera.setToOrtho(false, DEFAULT_SCREEN_WIDTH, DEFAULT_SCREEN_HEIGHT);
 
 		spawnPlayers();
 
-		unitList = new Array<Unit>();
+		sUnitList = new Array<Unit>();
 		for (UnitProperties up: mGame.mUnitPropList)
-			unitList.add(new Unit(up, mPlayers[0]));
+			sUnitList.add(new Unit(up, sPlayers[0]));
 
-		engine = new Engine(mPlayers);
+		mEngine = new Engine(sPlayers);
 
 		createUi();
 
@@ -257,7 +257,7 @@ public class GameScreen implements Screen {
 
 	@Override
 	public void dispose() {
-		stage.dispose();
+		mStage.dispose();
 	}
 
 }

@@ -17,12 +17,12 @@ import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 
 
 public class MainMenuScreen implements Screen {
-	static Skin skin;
+	private Skin mSkin;
 	static MainMenuScreen instance;
 
 	static final int BUTTON_WIDTH = 400;
 
-	static MyGdxGame game;
+	static MyGdxGame mGame;
 	private Stage stage;
 
 	private Table mainTable;
@@ -33,14 +33,14 @@ public class MainMenuScreen implements Screen {
 	class MenuButton extends TextButton {
 		final Screen screen;
 		MenuButton(String title, Screen s) {
-			super(title, MainMenuScreen.skin);
+			super(title, mSkin);
 			screen = s;
 			// setWidth(600);
 			addListener(new ClickListener(){
 				@Override 
 				public void clicked(InputEvent event, float x, float y){
 					MainMenuScreen menu = MainMenuScreen.instance;
-					menu.game.setScreen(screen);
+					menu.mGame.setScreen(screen);
 					menu.dispose();
 				}
 			});
@@ -50,8 +50,8 @@ public class MainMenuScreen implements Screen {
 	public MainMenuScreen(final MyGdxGame game) {
 		super();
 		instance = this;
-		this.game = game;
-		skin = game.skin;
+		mGame = game;
+		mSkin = game.getUiSkin();
 	}
 
 	private void addButton(MenuButton btn) {
@@ -108,8 +108,8 @@ public class MainMenuScreen implements Screen {
 
 		mainTable.align(Align.center);
 
-		startButton = new MenuButton("New Game", new GameScreen(game));
-		editUnitButton = new MenuButton("Edit Unit", new Editor(game));
+		startButton = new MenuButton("New Game", new GameScreen(mGame));
+		editUnitButton = new MenuButton("Edit Unit", new Editor(mGame));
 
 		mainTable.padTop(50);
 

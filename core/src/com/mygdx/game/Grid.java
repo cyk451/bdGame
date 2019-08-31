@@ -13,7 +13,8 @@ import com.badlogic.gdx.math.Circle;
  * A home-brew grid system. which is rather simple.
  */
 /* well, should i use tile map? */
-class Grid extends Array<Array<Tile> > {
+class Grid {
+	private Array<Lane> mLanes;
 
 	float mOffX, mOffY;
 	Player mOwner;
@@ -28,11 +29,18 @@ class Grid extends Array<Array<Tile> > {
 	// debug onlye
 	static Circle circle = new Circle(0, 0, 3);
 
-	public Grid(float x, float y, Player p) {
-		placeTiles(x, y, p);
+	public Grid(float x, float y, Player p, boolean flip) {
+		placeTiles(x, y, p, flip);
+	}
+	
+	public class Lane extends Array<Tile> {
+		Lane() {}
+		Lane(int cap) {
+			super(cap); 
+		}
 	}
 
-	private void placeTiles(float x, float y, Player p) {
+	private void placeTiles(float x, float y, Player p, boolean flip) {
 		mOffX = x; 
 		mOffY = y;
 		mOwner = p;
@@ -45,7 +53,7 @@ class Grid extends Array<Array<Tile> > {
 		y = mOffY + height() - e;
 
 		for(int i = 0; i < HEIGHT; ++i) {
-			Array<Tile> lane = new Array<Tile> (WIDTH);
+			Lane lane = new Lane(WIDTH);
 			x = x0;
 			if ((i & 1) == 1) {
 				x += 0.5 * e * SQRT3;
@@ -53,21 +61,23 @@ class Grid extends Array<Array<Tile> > {
 			}
 			for (int j = 0; j < WIDTH; ++j) {
 				Tile tile = new Tile(x, y, mOwner);
-				tile.x = j;
-				tile.y = i;
+				tile.mX = !flip? WIDTH - j - 1: j;
+				tile.mY = i;
 				lane.add(tile);
 				x += SQRT3 * e;
 				x += s;
 			}
-			add(lane);
+			if (!flip)
+				lane.reverse();
+			mLanes.add(lane);
 			y -= 1.5 * e;
 			y -= 0.5 * s * SQRT3;
 		}
 	}
 
 	public void render(MyGdxGame game) {
-		ShapeRenderer sr = game.shapeRenderer;
-		for (Iterator<Array<Tile> > liter = this.iterator(); liter.hasNext();) {
+		ShapeRenderer sr = game.mShapeRenderer;
+		for (Iterator<Lane> liter = mLanes.iterator(); liter.hasNext();) {
 			Array<Tile> lane = liter.next();
 			for (Iterator<Tile> titer = lane.iterator(); titer.hasNext(); ) {
 				Tile tile = titer.next();
@@ -92,10 +102,10 @@ class Grid extends Array<Array<Tile> > {
 	public void applyFormation(Player.Formation f) {
 	}
 
-	public Array<Tile> getLane(int y) {
+	public Lane getLane(int y) {
 		if (y < 0 || y >= Grid.HEIGHT)
 			return null;
-		return get(y);
+		return mLanes.get(y);
 	}
 
 	public Tile getTile(int x, int y) {
@@ -120,7 +130,7 @@ class Grid extends Array<Array<Tile> > {
 		circle.setX(pos.x);
 		circle.setY(pos.y);
 
-		for (Iterator<Array<Tile> > liter = this.iterator(); liter.hasNext();) {
+		for (Iterator<Lane> liter = mLanes.iterator(); liter.hasNext();) {
 			Array<Tile> lane = liter.next();
 			for (Iterator<Tile> titer = lane.iterator(); titer.hasNext(); ) {
 				Tile tile = titer.next();

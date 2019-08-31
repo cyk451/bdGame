@@ -21,7 +21,7 @@ public class Tile extends Polygon {
 
 	static Tile highlight = null;
 
-	static public int x, y;
+	public int mX, mY;
 
 	static private float[] getGridShapeVertices() {
 		float e = Grid.TILE_EDGE_PXL;
@@ -61,7 +61,7 @@ public class Tile extends Polygon {
 
 	public void render(MyGdxGame game) {
 
-		ShapeRenderer sr = game.shapeRenderer;
+		ShapeRenderer sr = game.mShapeRenderer;
 
 		sr.begin(ShapeType.Line);
 
@@ -132,7 +132,7 @@ public class Tile extends Polygon {
 			if (!isClear()) {
 				System.out.println("select it");
 				Unit.chosen = mUnit;
-				GameScreen.infoBar.setInformation(mUnit);
+				GameScreen.sInfoBar.setInformation(mUnit);
 			}
 			return true;
 		}

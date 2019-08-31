@@ -18,10 +18,10 @@ import com.badlogic.gdx.utils.*;
 import java.util.*;
 
 public class MyGdxGame extends Game{
-	public BitmapFont		font;
-	public ShapeRenderer	shapeRenderer;
-	public Skin				skin;
-	public SpriteBatch		batch;
+	private Skin					mUiSkin;
+	public BitmapFont				mFont;
+	public ShapeRenderer				mShapeRenderer;
+	public SpriteBatch				mBatch;
 
 	public Array<UnitProperties>			mUnitPropList;
 	public Player.Formation mFormation;
@@ -29,16 +29,17 @@ public class MyGdxGame extends Game{
 
 
 	static public AssetManager mAssetManager;
+	public Skin getUiSkin() { return mUiSkin; }
 
 	@Override
 	public void create () {
 
 		Gdx.app.log("Gdx version", com.badlogic.gdx.Version.VERSION);
-		batch = new SpriteBatch();
-		shapeRenderer = new ShapeRenderer();
+		mBatch = new SpriteBatch();
+		mShapeRenderer = new ShapeRenderer();
 
-		skin = new Skin(Gdx.files.internal("uiskin.json"));
-		font = new BitmapFont();
+		mUiSkin = new Skin(Gdx.files.internal("uiskin.json"));
+		mFont = new BitmapFont();
 
 		loadResources();
 
@@ -78,7 +79,7 @@ public class MyGdxGame extends Game{
 	}
 
 	public void dispose() {
-		batch.dispose();
+		mBatch.dispose();
 	}
 
 }

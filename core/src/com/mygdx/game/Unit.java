@@ -2,9 +2,12 @@ package com.mygdx.game;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
+import com.badlogic.gdx.graphics.glutils.ShapeRenderer.ShapeType;
+import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.utils.*;
 
 public class Unit {
@@ -21,7 +24,7 @@ public class Unit {
 	}
 
 	/* constant unit properties */
-	final private UnitProperties prop;
+	final private UnitProperties mProps;
 
 	private int gridX, gridY;
 	private int order = -1;
@@ -37,9 +40,9 @@ public class Unit {
 
 	public Unit(UnitProperties p, Player o) {
 		mOwner = o;
-		prop = p;
+		mProps = p;
 		prepared = false; // for static only;
-		currentHp = prop.hitpoints;
+		currentHp = mProps.hitpoints;
 	}
 
 	public void deploy(Grid grid, int x, int y) {
@@ -47,20 +50,40 @@ public class Unit {
 		gridY = y;
 	}
 
-	public int getX() { return mTile.x; }
-	public int getY() { return mTile.y; }
+	public int getX() { 
+		if (mTile != null) 
+			return mTile.mX; 
+		return 0;
+	}
 
-	public String getName() { return prop.name; }
+	public int getY() { 
+		if (mTile != null) 
+			return mTile.mY; 
+		return 0;
+	}
+
+	public String getName() { return mProps.name; }
 
 	public int getHp() { return currentHp; }
-	public void setHp(int hp) { currentHp = hp; }
+	public int getMaxHp() { return mProps.hitpoints; }
+	public void setHp(int hp) { 
+		if (hp < 0)
+			hp = 0;
+		if (hp > getMaxHp())
+			hp = getMaxHp();
 
-	public int getAtk() { return prop.damage; }
+		currentHp = hp;
 
-	public Sprite getIllust() { return prop.illustSprite; }
+		if (hp == 0)
+			getOwner().notifyUnitLost(this);
+	}
 
-	public UnitProperties.Range getRange() { return prop.range; }
-	public UnitProperties.Type getType() { return prop.type; }
+	public int getAtk() { return mProps.damage; }
+
+	public Sprite getIllust() { return mProps.illustSprite; }
+
+	public UnitProperties.Range getRange() { return mProps.range; }
+	public UnitProperties.Type getType() { return mProps.type; }
 
 	public Tile getTile() { return mTile; }
 	public void setTile(Tile t) { mTile = t; }
@@ -69,14 +92,14 @@ public class Unit {
 	public void setOrder(int o) { order = o; }
 
 	public Player getOwner() { return mOwner; }
-	public UnitProperties.Pattern getPattern() { return prop.pattern; }
+	public UnitProperties.Pattern getPattern() { return mProps.pattern; }
 
-	public boolean isDead() { return currentHp < 0; }
+	public boolean isDead() { return currentHp <= 0; }
 
 	public boolean isDeployed() { return mTile != null; }
 
 	public boolean switchPlayer() {
-		switch (prop.type) {
+		switch (mProps.type) {
 			case TROOP:
 			case TURRET:
 				return true;
@@ -95,42 +118,58 @@ public class Unit {
 		hp -= damage;
 
 		target.setHp(hp);
+
 	}
 
 
-	public void getTargets() {
-		int lane = getTile().y;
+	private void updateTargets() {
+		int lane = getTile().mY;
 		mAttackingGroup = mOwner.getOpponent().getTargets(lane, getRange(), getPattern());
 	}
 
 	public void runTurn() {
-		getTargets();
+		updateTargets();
+		// notifyTargetSelcted
+
+		// mAttackingGroup;
+		System.out.println("runTurn: " + getName() + " has " + mAttackingGroup.size + "' targets");
 
 		for (Unit t: mAttackingGroup) {
+			// notifyBeforeAttack
 			engage(t);
 			// if (t.isDead())
 				// mUnitQueue.remove(t);
+			// notifyAfterAttack
 		}
 		// end turn
-		// for (ab: prop.abilities) { ab.do }
+		// for (ab: mProps.abilities) { ab.do }
 	}
 
 	public void render(float[] spot, MyGdxGame game) {
 		// just render here.
-		Sprite unitSprite = getIllust();
+		Sprite sprite = isDead()? UnitProperties.sDebrickSprite: getIllust();
 		BitmapFont font = new BitmapFont();
 
-		game.batch.begin();
+		game.mBatch.begin();
 
-		drawHpBar(game);
-
-		game.batch.draw(unitSprite, spot[0], spot[1]);
-		font.draw(game.batch, "[" + getOrder() + "]", 
+		game.mBatch.draw(sprite, spot[0], spot[1]);
+		font.draw(game.mBatch, "[" + getOrder() + "]", 
 				spot[0], spot[1]);
 
-		game.batch.end();
+		game.mBatch.end();
+
+		drawHpBar(spot, game);
 	}
 
-	public void drawHpBar(MyGdxGame game) {
+	public void drawHpBar(float[] where, MyGdxGame game) {
+		float percentHp = 1.0f * getHp() / getMaxHp();
+		ShapeRenderer sr = game.mShapeRenderer;
+		sr.begin(ShapeType.Filled);
+		sr.setColor(Color.RED);
+		sr.rect(where[0], where[1], Grid.TILE_EDGE_PXL, 3);
+		sr.setColor(Color.GREEN);
+		sr.rect(where[0], where[1], 
+				Grid.TILE_EDGE_PXL * percentHp, 3);
+		sr.end();
 	}
 }

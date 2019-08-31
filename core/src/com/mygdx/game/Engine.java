@@ -21,6 +21,7 @@ public class Engine {
 	}
 
 	final Player []mPlayers;
+	Player mWinner;
 	int mRound;
 	// TODO render this queue under bottom tab
 	LinkedList<Unit>	mUnitQueue;
@@ -29,6 +30,7 @@ public class Engine {
 	private Status		mStatus;
 
 	public Engine(Player []p) {
+		mWinner = null;
 		mStatus = Status.WAITING;
 		mPlayers = p;
 		mFirstPlayer = mPlayers[0];
@@ -49,13 +51,14 @@ public class Engine {
 		Player o = p.getOpponent();
 		Array<Unit> result = new Array<Unit>();
 
-		int lane = u.getTile().y;
+		int lane = u.getTile().mY;
 
 		int max = 5;
 		do {
 			result= o.getTargets(lane, u.getRange(), u.getPattern());
-			--max;
-		} while((result.size == 0) && (max > 0));
+			if (result.size != 0)
+				return result;
+		} while(--max > 0);
 
 		return result;
 	}
@@ -99,10 +102,22 @@ public class Engine {
 		endRound();
 		return mUnitQueue.pop();
 	}
+	public boolean isGameEnd() {
+		if (mPlayers[0].isLose()) {
+			mWinner = mPlayers[1];
+			return true;
+		}
+		if (mPlayers[1].isLose()) {
+			mWinner = mPlayers[0];
+			return true;
+		}
+		return false;
+	}
 
 	public void tick(float delta) {
 		if (mStatus != Status.RUNNING)
 			return ;
+
 		long time = TimeUtils.nanoTime();
 		if ((time - mLastTurnTS) < 1 * 1000 * 1000 * 1000) {
 			return ;
@@ -111,14 +126,17 @@ public class Engine {
 
 		Unit u = getActiveUnit(); // pop queue
 
-		System.out.println("tick: " + time + ": " + u.getName() + " acting.");
+		System.out.println("tick: " + time + ": " + u.getOwner().getName() + u.getName() + " acting.");
+
 		u.runTurn();
-		/*
-		if (u.isDead())
-			mUnitQueue.remove(u);
-			*/
 
 		mLastTurnTS = time;
+
+		if (isGameEnd()) {
+			System.out.println("Player '" + mWinner.getName() + "' wins");
+
+			mStatus = Status.FINISHED;
+		}
 	}
 
 	private void endRound() {

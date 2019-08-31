@@ -30,10 +30,10 @@ public class Editor implements Screen {
 	public Editor(final MyGdxGame game) {
 		this.game = game;
 
-/*
-		camera = new OrthographicCamera();
-		camera.setToOrtho(false, 800, 480);
-*/
+		/*
+		   camera = new OrthographicCamera();
+		   camera.setToOrtho(false, 800, 480);
+		   */
 
 		stage = new Stage(new ScreenViewport());
 		Table table = new Table();
@@ -45,19 +45,19 @@ public class Editor implements Screen {
 
 		// table.setPosition(0, Gdx.graphics.getHeight());
 
-		databaseName = new TextField("Database", game.skin);
+		databaseName = new TextField("Database", game.getUiSkin());
 
-		loadButton = new TextButton("Load", game.skin);
-        loadButton.addListener(new ClickListener(){
-            @Override 
-            public void clicked(InputEvent event, float x, float y){
-                // button.setText("You clicked the button");
+		loadButton = new TextButton("Load", game.getUiSkin());
+		loadButton.addListener(new ClickListener(){
+			@Override 
+			public void clicked(InputEvent event, float x, float y){
+				// button.setText("You clicked the button");
 				// game.setScreen(new GameScreen(game));
 				readFile();
-            }
-        });
+			}
+		});
 
-		information = new Label("Select a database to edit", game.skin);
+		information = new Label("Select a database to edit", game.getUiSkin());
 
 		// table.padTop(30);
 		table.add(databaseName); // .padBottom(30).expandX();
@@ -103,7 +103,7 @@ public class Editor implements Screen {
 
 		Gdx.gl.glClearColor(0.75f, 0.75f, 0.75f, 1);
 		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
-		
+
 		stage.act(Gdx.graphics.getDeltaTime());
 		stage.draw();
 

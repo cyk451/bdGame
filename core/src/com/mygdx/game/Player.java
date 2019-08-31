@@ -9,26 +9,30 @@ import com.badlogic.gdx.utils.*;
 
 /* must create left player first */
 public class Player {
-	private Grid		mGrid;
+	private Grid			mGrid;
 	String				mName;
 	Player				mOpponent;
-	Formation			format;
-	Array<Unit>			orderList;
-	Color				color;
-	int					mIndex;
+	Formation			mFormation;
+	Array<Unit>			mOrderList;
+	Color				mColor;
+	int				mIndex;
+
+	int				mBattleUnitCount;
 
 	public Player(float x, float y, Player opponent, Color c) {
-		color = c;
+		boolean flip = false;
+		mColor = c;
 		// we are the bad guys!
 		if (opponent != null) {
 			x += opponent.mGrid.width();
 			// c = Color.RED;
 			opponent.mOpponent = this;
 			mOpponent = opponent;
+			flip = true;
 		}
 
-		mGrid = new Grid(x, y, this);
-		orderList = new Array<Unit>();
+		mGrid = new Grid(x, y, this, flip);
+		mOrderList = new Array<Unit>();
 	}
 
 	public Player setName(String name) { mName = name; return this; }
@@ -44,44 +48,51 @@ public class Player {
 	}
 
 	public void addUnit(Unit u) {
-		orderList.add(u);
+		mOrderList.add(u);
 
-		u.setOrder(orderList.size);
+		u.setOrder(mOrderList.size);
 		System.out.println(u + " is " + u.getOrder());
+		if (u.getType() != UnitProperties.Type.INFRA)
+			mBattleUnitCount += 1;
+	}
+
+	public void notifyUnitLost(Unit u) {
+		if (u.getType() != UnitProperties.Type.INFRA)
+			mBattleUnitCount -= 1;
 	}
 
 	public void removeUnit(Unit toBeRemoved) {
-		orderList.removeValue(toBeRemoved, true);
+		mOrderList.removeValue(toBeRemoved, true);
 		toBeRemoved.setOrder(-1);
 
 		// reorder units
 		int i = 1;
-		for (Unit u: orderList) { u.setOrder(i++); }
+		for (Unit u: mOrderList) { u.setOrder(i++); }
 		System.out.println(toBeRemoved + " back " + toBeRemoved.getOrder());
 	}
 
 	public void rewind() { mIndex = 0; }
 
 	public Unit getNextUnit() {
-		if (mIndex >= orderList.size)
+		if (mIndex >= mOrderList.size)
 			return null;
 		Unit result;
 		do {
 			System.out.println(getName() + " popping " + mIndex);
-			result = orderList.get(mIndex);
+			result = mOrderList.get(mIndex);
 			mIndex += 1;
 			if (!result.isDead())
 				return result;
-		} while (mIndex < orderList.size);
+		} while (mIndex < mOrderList.size);
 		return null;
 	}
 
-	public Color getColor() { return color; }
+	public Color getColor() { return mColor; }
 	public Player getOpponent() { return mOpponent; }
 
-	public Tile getMainTargetTile(int l, UnitProperties.Range range) {
-		Array<Tile> lane = mGrid.getLane(l);
-		Tile result = null;
+	public Unit getMainTarget(int l, UnitProperties.Range range) {
+		Grid.Lane lane = mGrid.getLane(l);
+		Unit result = null;
 		int from = 0, to = lane.size, inc = 1, match = 1;
 		switch(range) {
 			case FIRST:
@@ -97,12 +108,19 @@ public class Player {
 		}
 		for (int c = from; c != to; c += inc) {
 			Tile tile = lane.get(c);
-			if (tile.getUnit() != null) {
-				if (--match == 0)
-					break;
-				result = tile;
-			}
+			// System.out.println("getMainTargetTile: " + c + " / " + to + " checking");
+			Unit unit = tile.getUnit();
+			if (unit == null)
+				continue;
+			if (unit.isDead())
+				continue;
+			// System.out.println("getMainTargetTile: matched at " + c + " / " + to + " checking");
+			result = unit;
+			if (--match == 0)
+				break;
 		}
+		// if (result != null)
+			// System.out.println("getMainTargetTile: found [" + result.mX + ", " + result.mY + "]");
 		return result;
 	}
 
@@ -125,16 +143,16 @@ public class Player {
 			UnitProperties.Pattern pat) 
 	{
 		Array<Unit> list = new Array<Unit>();
+		System.out.println("getTargets: " + lane + ", " + range + ".");
 
 		if (lane < 0 || lane >= Grid.HEIGHT)
 			return list;
 
-		Tile tile = null;
 		for (int i = 0; i < Grid.HEIGHT; ++i) {
-			tile = getMainTargetTile((lane + i) % Grid.HEIGHT, range);
-			if (tile == null) 
+			Unit mainTarget = getMainTarget((lane + i) % Grid.HEIGHT, range);
+			if (mainTarget == null) 
 				continue;
-			list.add(tile.getUnit());
+			list.add(mainTarget);
 			break;
 		}
 
@@ -143,6 +161,10 @@ public class Player {
 
 	static public Formation parseFormation(JsonValue root) {
 		return new Formation(root);
+	}
+	public boolean isLose() {
+		System.out.println(getName() + " has " + mBattleUnitCount);
+		return mBattleUnitCount == 0;
 	}
 
 	public static class Formation {
@@ -154,8 +176,7 @@ public class Player {
 
 		Array<Deployment> mOrderList;
 
-		Formation() {
-		}
+		Formation() { }
 
 		Formation(JsonValue root) {
 			mOrderList = new Array<Deployment>();

@@ -29,6 +29,7 @@ public class UnitProperties {
 	public enum Range { FIRST, SKIP, LAST };
 	public enum Type { TROOP, INFRA, STATIC, TURRET };
 
+	static public Sprite sDebrickSprite = loadDebrickSprite();
 	public String name;
 	public String flavorText;
 
@@ -36,9 +37,9 @@ public class UnitProperties {
 	public int		id;
 	public int		hitpoints;
 	public int		damage;
-	public Pattern	pattern;
-	public Pixmap	patternTexture; // show user how the range is
-	public Range	range;
+	public Pattern		pattern;
+	public Pixmap		patternTexture; // show user how the range is
+	public Range		range;
 	public Type		type;
 
 	public Sprite illustSprite;
@@ -70,6 +71,11 @@ public class UnitProperties {
 			}
 			return (int)(l.y - r.y);
 		}
+	}
+
+	static public Sprite loadDebrickSprite() {
+		Texture texture = new Texture(Gdx.files.internal("debrick.png"));
+		return new Sprite(texture);
 	}
 
 	/* constructors */
