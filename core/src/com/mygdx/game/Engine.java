@@ -20,9 +20,9 @@ public class Engine {
 		FINISHED
 	}
 
-	final Player []mPlayers;
-	Player mWinner;
-	int mRound;
+	final Player 		[]mPlayers;
+	Player			mWinner;
+	int			mRound;
 	// TODO render this queue under bottom tab
 	LinkedList<Unit>	mUnitQueue;
 	private long		mLastTurnTS;
@@ -102,6 +102,7 @@ public class Engine {
 		endRound();
 		return mUnitQueue.pop();
 	}
+
 	public boolean isGameEnd() {
 		if (mPlayers[0].isLose()) {
 			mWinner = mPlayers[1];

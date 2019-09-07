@@ -1,5 +1,6 @@
 package com.mygdx.game;
 
+import com.mygdx.game.screen.GameScreen;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.Color;
@@ -8,41 +9,78 @@ import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer.ShapeType;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
+import com.badlogic.gdx.scenes.scene2d.*;
+import com.badlogic.gdx.scenes.scene2d.ui.*;
+import com.badlogic.gdx.scenes.scene2d.utils.*;
+import com.badlogic.gdx.graphics.g2d.*;
 import com.badlogic.gdx.utils.*;
 
 public class Unit {
 	// static public Texture testTexture = new Texture(Gdx.files.internal("bucket.png"));
-	static public Unit chosen = null;
+	static public Unit sChosenUnit = null;
 
 	// static properties
 	// public boolean deployed = false;
 	/* cordinates relative to major */
 
 	class Attack {
-		private int atkPoints;
-		private int damageDealt;
+		private int mAtkPoints;
+		private int mDamageDealt;
 	}
 
 	/* constant unit properties */
 	final private UnitProperties mProps;
 
 	private int gridX, gridY;
-	private int order = -1;
-	private int currentHp;
-	private boolean prepared;
+	private int mOrder;
+	private int mCurrentHp;
+	private boolean mPrepared;
 	private Unit mMainTarget;
 	private Array<Unit> mAttackingGroup;
+
+	// free it somehow
+	static private BitmapFont sFont = new BitmapFont();
+
 	// private float posX, posY;
 	Player mOwner;
 	Tile mTile;
+	UnitButton mButton;
 
 	private Buff[] mBuffs;
+
+	public class UnitButton extends ImageButton {
+		Unit mUnit;
+		UnitButton(Unit u) {
+			super(new SpriteDrawable(u.getIllust()));
+			mUnit = u;
+			addListener(new ClickListener(){
+				@Override 
+				public void clicked(InputEvent event, float x, float y){
+					System.out.println(mUnit.getName() + " selected...");
+					if (!mUnit.isDeployed())
+						sChosenUnit = mUnit;
+					GameScreen.sInfoBar.setInformation(mUnit);
+				}
+			});
+		}
+
+		@Override
+		public void draw(Batch batch, float parentAlpha) {
+			super.draw(batch, parentAlpha);
+		}
+	}
+
+	public ImageButton asButton() {
+		return mButton;
+	}
 
 	public Unit(UnitProperties p, Player o) {
 		mOwner = o;
 		mProps = p;
-		prepared = false; // for static only;
-		currentHp = mProps.hitpoints;
+		mOrder = -1;
+		mPrepared = false; // for static only;
+		mCurrentHp = mProps.hitpoints;
+		mButton = new UnitButton(this);
 	}
 
 	public void deploy(Grid grid, int x, int y) {
@@ -64,7 +102,7 @@ public class Unit {
 
 	public String getName() { return mProps.name; }
 
-	public int getHp() { return currentHp; }
+	public int getHp() { return mCurrentHp; }
 	public int getMaxHp() { return mProps.hitpoints; }
 	public void setHp(int hp) { 
 		if (hp < 0)
@@ -72,7 +110,7 @@ public class Unit {
 		if (hp > getMaxHp())
 			hp = getMaxHp();
 
-		currentHp = hp;
+		mCurrentHp = hp;
 
 		if (hp == 0)
 			getOwner().notifyUnitLost(this);
@@ -86,15 +124,43 @@ public class Unit {
 	public UnitProperties.Type getType() { return mProps.type; }
 
 	public Tile getTile() { return mTile; }
-	public void setTile(Tile t) { mTile = t; }
 
-	public int getOrder() { return order; }
-	public void setOrder(int o) { order = o; }
+	/** 
+	 * Unit.setTile() and Tile.setUnit() are symetric, which always call
+	 * each other to ensure unit <-> tile pairs is syncronized.
+	 */
+	public void setTile(Tile t) {
+		if (mTile == t)
+			return;
+
+		Tile oldTile = mTile;
+		mTile = t; 
+
+		if (oldTile != null)
+			oldTile.setUnit(null);
+
+		if (mTile != null) {
+			mTile.setUnit(this);
+			if (mOwner == GameScreen.getControllingPlayer())
+				GameScreen.sUnitSelectBar.removeButton(asButton());
+			mOwner.addUnit(this);
+		} else {
+			if (mOwner == GameScreen.getControllingPlayer())
+				GameScreen.sUnitSelectBar.addButton(asButton());
+			mOwner.removeUnit(this);
+		}
+	}
+
+	public void swapTile(Unit unit) {
+	}
+
+	public int getOrder() { return mOrder; }
+	public void setOrder(int o) { mOrder = o; }
 
 	public Player getOwner() { return mOwner; }
 	public UnitProperties.Pattern getPattern() { return mProps.pattern; }
 
-	public boolean isDead() { return currentHp <= 0; }
+	public boolean isDead() { return mCurrentHp <= 0; }
 
 	public boolean isDeployed() { return mTile != null; }
 
@@ -104,7 +170,7 @@ public class Unit {
 			case TURRET:
 				return true;
 			case STATIC:
-				return prepared;
+				return mPrepared;
 			case INFRA:
 				return false;
 		}
@@ -148,17 +214,18 @@ public class Unit {
 	public void render(float[] spot, MyGdxGame game) {
 		// just render here.
 		Sprite sprite = isDead()? UnitProperties.sDebrickSprite: getIllust();
-		BitmapFont font = new BitmapFont();
 
 		game.mBatch.begin();
 
 		game.mBatch.draw(sprite, spot[0], spot[1]);
-		font.draw(game.mBatch, "[" + getOrder() + "]", 
+		sFont.draw(game.mBatch, "[" + getOrder() + "]", 
 				spot[0], spot[1]);
 
 		game.mBatch.end();
 
 		drawHpBar(spot, game);
+
+		// sFont.dispose();
 	}
 
 	public void drawHpBar(float[] where, MyGdxGame game) {

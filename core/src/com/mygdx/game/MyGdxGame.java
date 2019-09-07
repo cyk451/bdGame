@@ -80,6 +80,9 @@ public class MyGdxGame extends Game{
 
 	public void dispose() {
 		mBatch.dispose();
+		mFont.dispose();
+		mUiSkin.dispose();
+		mShapeRenderer.dispose();
 	}
 
 }

@@ -36,10 +36,10 @@ public class GameScreen implements Screen {
 
 	final MyGdxGame			mGame;
 	private Engine			mEngine;
-	private UnitSelectBar		mUnitSelectBar;
 	public OrthographicCamera	mCamera;
 	public Stage			mStage;
 
+	static public UnitSelectBar	sUnitSelectBar;
 	static public InformationBar	sInfoBar;
 	static Player			[]sPlayers;
 	static Array<Unit>		sUnitList;
@@ -52,19 +52,6 @@ public class GameScreen implements Screen {
 		// load the mStage for enemy player
 		//
 		sPlayers[1].applyFormation(mGame.mFormation);
-	}
-
-	class UnitButton extends ImageButton {
-		Unit unit;
-		UnitButton(Unit u) {
-			super(new SpriteDrawable(u.getIllust()));
-			unit = u;
-		}
-
-		@Override
-		public void draw(Batch batch, float parentAlpha) {
-			super.draw(batch, parentAlpha);
-		}
 	}
 
 	public class InformationBar extends Table {
@@ -107,12 +94,15 @@ public class GameScreen implements Screen {
 
 	}
 
-	class UnitSelectBar extends Table {
-		private Stage mStage;
+
+	public class UnitSelectBar extends Table {
+		private Stage		mStage;
+		private HorizontalGroup	mUnitListGroup; 
 
 		UnitSelectBar(Stage parent) {
 			super();
 			mStage = parent;
+			mUnitListGroup = new HorizontalGroup();
 
 			align(Align.left);
 			pad(5.0f);
@@ -121,30 +111,16 @@ public class GameScreen implements Screen {
 			startButton.addListener(new ClickListener(){
 				@Override 
 				public void clicked(InputEvent event, float x, float y){
-					// button.setText("You clicked the button");
-					// game.setScreen(new GameScreen(game));
-					// dispose();
-					System.out.println("Ok fight starts");
-					// validation check
+					System.out.println("Fight starts");
 					mEngine.run();
 				}
 			});
 
 			add(startButton);
-			HorizontalGroup horizontal = new HorizontalGroup();
 			for (final Unit u : sUnitList) {
-				UnitButton ub = new UnitButton(u);
-				// ub.setHeight(48);
-				horizontal.addActor(ub);
-				ub.addListener(new ClickListener(){
-					@Override 
-					public void clicked(InputEvent event, float x, float y){
-						System.out.println("A unit selected...");
-						setUnitSelected(u);
-					}
-				});
+				mUnitListGroup.addActor(u.asButton());
 			}
-			ScrollPane sp = new ScrollPane(horizontal, mGame.getUiSkin());
+			ScrollPane sp = new ScrollPane(mUnitListGroup, mGame.getUiSkin());
 			// sp.setScrollbarsVisible(false);
 			// sp.setScrollbarTouch(false);
 
@@ -160,22 +136,23 @@ public class GameScreen implements Screen {
 			setPosition(0, 0);
 		}
 
+		public void addButton(ImageButton button) {
+			mUnitListGroup.addActor(button);
+		}
+
+		public void removeButton(ImageButton button) {
+			mUnitListGroup.removeActor(button);
+		}
+
 	}
 
 	private void createUi() {
-		mStage = new Stage(new ScreenViewport());
-		mUnitSelectBar = new UnitSelectBar(mStage);
-		sInfoBar = new InformationBar(mStage);
-		// table.add(horizontal);
+		mStage		= new Stage(new ScreenViewport());
+		sUnitSelectBar	= new UnitSelectBar(mStage);
+		sInfoBar	= new InformationBar(mStage);
 
 		Gdx.input.setInputProcessor(mStage);
 
-	}
-
-	public void setUnitSelected(Unit u) {
-		if (!u.isDeployed())
-			Unit.chosen = u;
-		sInfoBar.setInformation(u);
 	}
 
 	@Override
@@ -196,7 +173,7 @@ public class GameScreen implements Screen {
 
 		mStage.act(Gdx.graphics.getDeltaTime());
 		mStage.draw();
-		mStage.setDebugAll(true);
+		// mStage.setDebugAll(true);
 
 		if (Gdx.input.isTouched()) {
 			Vector3 touchPos = new Vector3();
@@ -212,8 +189,8 @@ public class GameScreen implements Screen {
 	public void resize(int width, int height) {
 		if (sInfoBar != null)
 			sInfoBar.updateGeometry(width, height);
-		if (mUnitSelectBar != null)
-			mUnitSelectBar.updateGeometry(width, height);
+		if (sUnitSelectBar != null)
+			sUnitSelectBar.updateGeometry(width, height);
 		mStage.getViewport().update(width, height, true);
 	}
 
@@ -258,6 +235,10 @@ public class GameScreen implements Screen {
 	@Override
 	public void dispose() {
 		mStage.dispose();
+	}
+
+	public static Player getControllingPlayer() {
+		return sPlayers[0];
 	}
 
 }

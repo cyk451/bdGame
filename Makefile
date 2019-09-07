@@ -8,4 +8,4 @@ $(JAR): $(SOURCES)
 	./gradlew desktop:dist
 
 run: $(JAR)
-	java -jar $(JAR)
+	java -Xmx512M -jar $(JAR)

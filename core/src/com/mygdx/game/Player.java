@@ -1,5 +1,6 @@
 package com.mygdx.game;
 
+// import com.mygdx.game.screen.GameScreen;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer.ShapeType;
@@ -37,7 +38,6 @@ public class Player {
 
 	public Player setName(String name) { mName = name; return this; }
 	public String getName() { return mName; }
-
 
 	public void render(MyGdxGame game) {
 		mGrid.render(game);
@@ -207,8 +207,39 @@ public class Player {
 
 	public void applyFormation(Formation f) {
 		for (Formation.Deployment d: f.mOrderList) {
-			mGrid.getTile(d.mX, d.mY).setUnit(new Unit(d.mUnitProp, this));
+			// mGrid.getTile(d.mX, d.mY).deployUnit(new Unit(d.mUnitProp, this), this);
+			deployUnit(new Unit(d.mUnitProp, this), mGrid.getTile(d.mX, d.mY));
 		}
+	}
+
+	// return boolean: deployUnit successful.
+	public boolean deployUnit(Unit toBeDeployed, Tile tile) {
+		if (tile == null)
+			return false;
+
+		if (tile.getUnit() == toBeDeployed)
+			return false;
+
+		if (tile.getOwner() != this)
+			return false;
+
+		if (toBeDeployed.getOwner() != this)
+			return false;
+
+		System.out.println("returning true");
+
+		Tile theOtherTile = toBeDeployed.getTile();
+		toBeDeployed.setTile(null);
+
+		Unit theOtherUnit = tile.getUnit();
+		if (theOtherUnit != null) {
+			tile.setUnit(null);
+			if (theOtherTile != null) {
+				theOtherUnit.setTile(theOtherTile);
+			}
+		}
+		toBeDeployed.setTile(tile);
+		return true;
 	}
 
 }

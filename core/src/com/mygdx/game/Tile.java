@@ -18,6 +18,7 @@ public class Tile extends Polygon {
 	private Player	mOwner;
 	private Unit	mUnit;
 	private float 	[]mRenderSpot;
+	private float	[]mTransformed;
 
 	static Tile highlight = null;
 
@@ -36,22 +37,26 @@ public class Tile extends Polygon {
 		};
 	}
 
+	public Player getOwner() { return mOwner; }
 
 	// private Texture dropImage;
-
 	public Tile(float x, float y, Player player) {
 		super(getGridShapeVertices());
 		setPosition(x, y);
 		mOwner = player;
 
+		mTransformed = getTransformedVertices();
 		// this is some constant actually
-		float []arr = getTransformedVertices();
+		float []arr = mTransformed;
 		mRenderSpot = new float[]{
 			(arr[0] + arr[6]), 
 			(arr[1] + arr[7])
 		};
 		mRenderSpot[0] *= 0.5;
 		mRenderSpot[1] *= 0.5;
+
+		mRenderSpot[1] -= 48 / 2;
+		mRenderSpot[0] -= 48 / 2;
 	}
 
 
@@ -66,7 +71,7 @@ public class Tile extends Polygon {
 		sr.begin(ShapeType.Line);
 
 		sr.setColor((highlight == this)? Color.WHITE: getColor());
-		sr.polygon(getTransformedVertices());
+		sr.polygon(mTransformed);
 		sr.end();
 
 		if (mUnit != null)
@@ -78,60 +83,42 @@ public class Tile extends Polygon {
 
 	public Unit getUnit() { return mUnit; }
 
-	// return boolean: setUnit successful.
-	public boolean setUnit(Unit toBeDeployed) {
-		if (mUnit == toBeDeployed)
-			return false;
+	public void setUnit(Unit unit) {
+		if (mUnit == unit)
+			return ;
 
-		if (toBeDeployed.getOwner() != mOwner)
-			return false;
+		Unit oldUnit = mUnit;
+		mUnit = unit;
 
-		System.out.println("add unit");
+		if (oldUnit != null)
+			oldUnit.setTile(null);
 
-		if (!isClear()) {
-			mUnit.setTile(null);
-			mOwner.removeUnit(mUnit);
-			clear();
-			// TODO swap two units if toBeDeployed is also deployed
-		}
-		if (toBeDeployed.isDeployed())
-			toBeDeployed.getTile().clear();
-		else
-			mOwner.addUnit(toBeDeployed);
-		toBeDeployed.setTile(this);
-
-		mUnit = toBeDeployed;
-
-		Sprite unitSprite = mUnit.getIllust();
-		mRenderSpot[1] -= unitSprite.getHeight() / 2;
-		mRenderSpot[0] -= unitSprite.getWidth() / 2;
-
-		return true;
+		if (mUnit != null)
+			mUnit.setTile(this);
 	}
 
+
 	/*
-	 * chosen tile => chosen tile
+	 * sChosenUnit tile => sChosenUnit tile
 	 *    A    B         X    A
 	 *    A    X         X    A
 	 *    X    A         A    A
 	 *    X    X         X    X
 	 */
-
 	// return boolean: is touch event handled.
 	public boolean handleTouch(Vector3 pos) {
 		if (contains(pos.x, pos.y)) {
-			// System.out.println("handling");
 			highlight = this;
 
-			if (Unit.chosen != null) {
-				if (setUnit(Unit.chosen))
-					Unit.chosen = null;
+			if (Unit.sChosenUnit != null) {
+				if (GameScreen.getControllingPlayer().deployUnit(Unit.sChosenUnit, this))
+					Unit.sChosenUnit = null;
 				return true;
 			} 
 
 			if (!isClear()) {
 				System.out.println("select it");
-				Unit.chosen = mUnit;
+				Unit.sChosenUnit = mUnit;
 				GameScreen.sInfoBar.setInformation(mUnit);
 			}
 			return true;
@@ -142,10 +129,12 @@ public class Tile extends Polygon {
 	private boolean isClear() { return mUnit == null; }
 
 	private void clear() { 
+		/*
 		Sprite unitSprite = mUnit.getIllust();
 
 		mRenderSpot[1] += unitSprite.getHeight() / 2;
 		mRenderSpot[0] += unitSprite.getWidth() / 2;
+		*/
 		mUnit = null; 
 	}
 }

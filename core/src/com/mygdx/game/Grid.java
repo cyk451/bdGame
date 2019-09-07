@@ -22,7 +22,7 @@ class Grid {
 	// haven't see a need to let them configurable
 	static final int WIDTH = 6;
 	static final int HEIGHT = 5;
-	static final int TILE_EDGE_PXL = 35;
+	static final int TILE_EDGE_PXL = 32;
 	static final int TILE_SPACE_PXL = 3;
 	static final float SQRT3 = 1.732f;
 
@@ -52,10 +52,12 @@ class Grid {
 		float x0 = mOffX + 0.5f * SQRT3 * e;
 		y = mOffY + height() - e;
 
+		mLanes = new Array<Lane>(HEIGHT);
 		for(int i = 0; i < HEIGHT; ++i) {
 			Lane lane = new Lane(WIDTH);
 			x = x0;
-			if ((i & 1) == 1) {
+			int pattern = flip? 0: 1;
+			if ((i & 1) == pattern) {
 				x += 0.5 * e * SQRT3;
 				x += 0.5 * s;
 			}
@@ -92,7 +94,7 @@ class Grid {
 	}
 
 	static public float width() {
-		return 1.00f * ( WIDTH * (SQRT3 * TILE_EDGE_PXL + TILE_SPACE_PXL));
+		return 1.00f * ( (0.5f + WIDTH) * (SQRT3 * TILE_EDGE_PXL + TILE_SPACE_PXL));
 	}
 
 	static public float height() {
