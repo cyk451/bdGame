@@ -28,12 +28,12 @@ public class Tile extends Polygon {
 		float e = Grid.TILE_EDGE_PXL;
 		float s = Grid.TILE_SPACE_PXL;
 		return new float[]{
-			0, -e, 
-			-e * Grid.SQRT3 * 0.5f, -e * 0.5f, 
-			-e * Grid.SQRT3 * 0.5f, e * 0.5f, 
-			0, e, 
-			e * Grid.SQRT3 * 0.5f, e * 0.5f, 
-			e * Grid.SQRT3 * 0.5f, -e * 0.5f, 
+			0, -e,
+			-e * Grid.SQRT3 * 0.5f, -e * 0.5f,
+			-e * Grid.SQRT3 * 0.5f, e * 0.5f,
+			0, e,
+			e * Grid.SQRT3 * 0.5f, e * 0.5f,
+			e * Grid.SQRT3 * 0.5f, -e * 0.5f,
 		};
 	}
 
@@ -49,7 +49,7 @@ public class Tile extends Polygon {
 		// this is some constant actually
 		float []arr = mTransformed;
 		mRenderSpot = new float[]{
-			(arr[0] + arr[6]), 
+			(arr[0] + arr[6]),
 			(arr[1] + arr[7])
 		};
 		mRenderSpot[0] *= 0.5;
@@ -114,7 +114,7 @@ public class Tile extends Polygon {
 				if (GameScreen.getControllingPlayer().deployUnit(Unit.sChosenUnit, this))
 					Unit.sChosenUnit = null;
 				return true;
-			} 
+			}
 
 			if (!isClear()) {
 				System.out.println("select it");
@@ -128,13 +128,13 @@ public class Tile extends Polygon {
 
 	private boolean isClear() { return mUnit == null; }
 
-	private void clear() { 
+	private void clear() {
 		/*
 		Sprite unitSprite = mUnit.getIllust();
 
 		mRenderSpot[1] += unitSprite.getHeight() / 2;
 		mRenderSpot[0] += unitSprite.getWidth() / 2;
 		*/
-		mUnit = null; 
+		mUnit = null;
 	}
 }

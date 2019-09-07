@@ -36,12 +36,12 @@ class Grid {
 	public class Lane extends Array<Tile> {
 		Lane() {}
 		Lane(int cap) {
-			super(cap); 
+			super(cap);
 		}
 	}
 
 	private void placeTiles(float x, float y, Player p, boolean flip) {
-		mOffX = x; 
+		mOffX = x;
 		mOffY = y;
 		mOwner = p;
 

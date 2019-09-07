@@ -37,7 +37,7 @@ public class MainMenuScreen implements Screen {
 			screen = s;
 			// setWidth(600);
 			addListener(new ClickListener(){
-				@Override 
+				@Override
 				public void clicked(InputEvent event, float x, float y){
 					MainMenuScreen menu = MainMenuScreen.instance;
 					menu.mGame.setScreen(screen);

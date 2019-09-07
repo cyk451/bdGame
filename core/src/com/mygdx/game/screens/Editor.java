@@ -49,7 +49,7 @@ public class Editor implements Screen {
 
 		loadButton = new TextButton("Load", game.getUiSkin());
 		loadButton.addListener(new ClickListener(){
-			@Override 
+			@Override
 			public void clicked(InputEvent event, float x, float y){
 				// button.setText("You clicked the button");
 				// game.setScreen(new GameScreen(game));

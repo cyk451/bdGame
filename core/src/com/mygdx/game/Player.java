@@ -101,9 +101,9 @@ public class Player {
 				match = 2;
 				break;
 			case LAST:
-				from = lane.size - 1; 
-				to = -1; 
-				inc = -1; 
+				from = lane.size - 1;
+				to = -1;
+				inc = -1;
 				match = 1;
 		}
 		for (int c = from; c != to; c += inc) {
@@ -139,8 +139,8 @@ public class Player {
 
 	public Array<Unit> getTargets(
 			int lane,
-			UnitProperties.Range range, 
-			UnitProperties.Pattern pat) 
+			UnitProperties.Range range,
+			UnitProperties.Pattern pat)
 	{
 		Array<Unit> list = new Array<Unit>();
 		System.out.println("getTargets: " + lane + ", " + range + ".");
@@ -150,7 +150,7 @@ public class Player {
 
 		for (int i = 0; i < Grid.HEIGHT; ++i) {
 			Unit mainTarget = getMainTarget((lane + i) % Grid.HEIGHT, range);
-			if (mainTarget == null) 
+			if (mainTarget == null)
 				continue;
 			list.add(mainTarget);
 			break;

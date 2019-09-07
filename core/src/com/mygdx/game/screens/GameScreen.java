@@ -97,7 +97,7 @@ public class GameScreen implements Screen {
 
 	public class UnitSelectBar extends Table {
 		private Stage		mStage;
-		private HorizontalGroup	mUnitListGroup; 
+		private HorizontalGroup	mUnitListGroup;
 
 		UnitSelectBar(Stage parent) {
 			super();
@@ -109,7 +109,7 @@ public class GameScreen implements Screen {
 
 			Button startButton = new TextButton("Fight", mGame.getUiSkin());
 			startButton.addListener(new ClickListener(){
-				@Override 
+				@Override
 				public void clicked(InputEvent event, float x, float y){
 					System.out.println("Fight starts");
 					mEngine.run();

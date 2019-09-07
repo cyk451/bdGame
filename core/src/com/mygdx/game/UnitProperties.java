@@ -80,7 +80,7 @@ public class UnitProperties {
 
 	/* constructors */
 	public UnitProperties() { }
-	public UnitProperties(JsonValue json) { 
+	public UnitProperties(JsonValue json) {
 		name = json.getString("name");
 		flavorText = json.getString("flavorText");
 		damage = json.getInt("damage");

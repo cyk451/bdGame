@@ -54,7 +54,7 @@ public class Unit {
 			super(new SpriteDrawable(u.getIllust()));
 			mUnit = u;
 			addListener(new ClickListener(){
-				@Override 
+				@Override
 				public void clicked(InputEvent event, float x, float y){
 					System.out.println(mUnit.getName() + " selected...");
 					if (!mUnit.isDeployed())
@@ -88,15 +88,15 @@ public class Unit {
 		gridY = y;
 	}
 
-	public int getX() { 
-		if (mTile != null) 
-			return mTile.mX; 
+	public int getX() {
+		if (mTile != null)
+			return mTile.mX;
 		return 0;
 	}
 
-	public int getY() { 
-		if (mTile != null) 
-			return mTile.mY; 
+	public int getY() {
+		if (mTile != null)
+			return mTile.mY;
 		return 0;
 	}
 
@@ -104,7 +104,7 @@ public class Unit {
 
 	public int getHp() { return mCurrentHp; }
 	public int getMaxHp() { return mProps.hitpoints; }
-	public void setHp(int hp) { 
+	public void setHp(int hp) {
 		if (hp < 0)
 			hp = 0;
 		if (hp > getMaxHp())
@@ -125,7 +125,7 @@ public class Unit {
 
 	public Tile getTile() { return mTile; }
 
-	/** 
+	/**
 	 * Unit.setTile() and Tile.setUnit() are symetric, which always call
 	 * each other to ensure unit <-> tile pairs is syncronized.
 	 */
@@ -134,7 +134,7 @@ public class Unit {
 			return;
 
 		Tile oldTile = mTile;
-		mTile = t; 
+		mTile = t;
 
 		if (oldTile != null)
 			oldTile.setUnit(null);
@@ -218,7 +218,7 @@ public class Unit {
 		game.mBatch.begin();
 
 		game.mBatch.draw(sprite, spot[0], spot[1]);
-		sFont.draw(game.mBatch, "[" + getOrder() + "]", 
+		sFont.draw(game.mBatch, "[" + getOrder() + "]",
 				spot[0], spot[1]);
 
 		game.mBatch.end();
@@ -235,7 +235,7 @@ public class Unit {
 		sr.setColor(Color.RED);
 		sr.rect(where[0], where[1], Grid.TILE_EDGE_PXL, 3);
 		sr.setColor(Color.GREEN);
-		sr.rect(where[0], where[1], 
+		sr.rect(where[0], where[1],
 				Grid.TILE_EDGE_PXL * percentHp, 3);
 		sr.end();
 	}
