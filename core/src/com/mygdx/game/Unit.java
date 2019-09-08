@@ -218,7 +218,7 @@ public class Unit {
 		game.mBatch.begin();
 
 		game.mBatch.draw(sprite, spot[0], spot[1]);
-		sFont.draw(game.mBatch, "[" + getOrder() + "]",
+		sFont.draw(game.mBatch, "" + getOrder(),
 				spot[0], spot[1]);
 
 		game.mBatch.end();

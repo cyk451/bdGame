@@ -12,6 +12,8 @@ import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.Input.Keys;
+import com.badlogic.gdx.InputMultiplexer;
+import com.badlogic.gdx.InputAdapter;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector3;
@@ -39,10 +41,12 @@ public class GameScreen implements Screen {
 	public OrthographicCamera	mCamera;
 	public Stage			mStage;
 
+	// static variables
 	static public UnitSelectBar	sUnitSelectBar;
 	static public InformationBar	sInfoBar;
 	static Player			[]sPlayers;
 	static Array<Unit>		sUnitList;
+	static boolean			sChangingOrder = false;
 
 	public GameScreen(final MyGdxGame g) {
 		mGame = g;
@@ -85,7 +89,7 @@ public class GameScreen implements Screen {
 
 		public void setInformation(Unit u) {
 			mUnitNameLabel.setText("" + u.getType() + " - " + u.getName());
-			mStatusLabel.setText("HP: " + u.getHp()+ " DMG: " + u.getAtk() + "/" + "turn " + u.getRange());
+			mStatusLabel.setText("HP: " + u.getHp()+ " DMG: " + u.getAtk() + " " + u.getRange());
 			drawAttackArea();
 		}
 
@@ -117,6 +121,19 @@ public class GameScreen implements Screen {
 			});
 
 			add(startButton);
+
+			Button orderButton = new TextButton("Order", mGame.getUiSkin());
+			startButton.addListener(new ClickListener(){
+				@Override
+				public void clicked(InputEvent event, float x, float y){
+					System.out.println("Changing toggled");
+					sChangingOrder = !sChangingOrder;
+					// mEngine.run();
+				}
+			});
+
+			add(orderButton);
+
 			for (final Unit u : sUnitList) {
 				mUnitListGroup.addActor(u.asButton());
 			}
@@ -151,7 +168,20 @@ public class GameScreen implements Screen {
 		sUnitSelectBar	= new UnitSelectBar(mStage);
 		sInfoBar	= new InformationBar(mStage);
 
-		Gdx.input.setInputProcessor(mStage);
+		InputMultiplexer multiplexer = new InputMultiplexer();
+		final Vector3 tp = new Vector3();
+		multiplexer.addProcessor(new InputAdapter() {
+			@Override
+			public boolean touchDown(int x, int y, int pointer, int button) {
+				mCamera.unproject(tp.set(x, y, 0));
+				for (Player player : sPlayers)
+					if (player.handleTouch(tp))
+						return true;
+				return false;
+			}
+		});
+		multiplexer.addProcessor(mStage);
+		Gdx.input.setInputProcessor(multiplexer);
 
 	}
 
@@ -174,15 +204,6 @@ public class GameScreen implements Screen {
 		mStage.act(Gdx.graphics.getDeltaTime());
 		mStage.draw();
 		// mStage.setDebugAll(true);
-
-		if (Gdx.input.isTouched()) {
-			Vector3 touchPos = new Vector3();
-			touchPos.set(Gdx.input.getX(), Gdx.input.getY(), 0);
-			mCamera.unproject(touchPos);
-			for (Player player : sPlayers)
-				if (player.handleTouch(touchPos))
-					break;
-		}
 	}
 
 	@Override
