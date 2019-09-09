@@ -14,7 +14,7 @@ import com.badlogic.gdx.utils.*;
 // loop (update)
 //
 public class Engine extends Thread {
-	final int		INTERVAL_MS = 1000;
+	final static public int	INTERVAL_MS = 1000;
 	enum Status {
 		WAITING,
 		RUNNING,
@@ -101,7 +101,6 @@ public class Engine extends Thread {
 
 
 		while (finished < 2) {
-
 			System.out.println("acting " + activePlayer.getName() + " popping");
 			Unit u = activePlayer.getNextUnit();
 			if (u == null) {

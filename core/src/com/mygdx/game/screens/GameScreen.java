@@ -102,7 +102,7 @@ public class GameScreen implements Screen {
 			showMessage("You Lose :(", 0);
 		}
 		public void onRound(int round) {
-			showMessage("Round" + round, 1000);
+			showMessage("Round" + round, Engine.INTERVAL_MS);
 		}
 	}
 
