@@ -116,7 +116,8 @@ public class GameScreen implements Screen {
 				@Override
 				public void clicked(InputEvent event, float x, float y){
 					System.out.println("Fight starts");
-					mEngine.run();
+					// mEngine.run();
+					mEngine.start();
 				}
 			});
 
@@ -199,7 +200,7 @@ public class GameScreen implements Screen {
 			player.render(mGame);
 		}
 
-		mEngine.tick(delta);
+		// mEngine.tick(delta);
 
 		mStage.act(Gdx.graphics.getDeltaTime());
 		mStage.draw();

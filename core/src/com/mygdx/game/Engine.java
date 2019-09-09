@@ -13,7 +13,8 @@ import com.badlogic.gdx.utils.*;
 // init
 // loop (update)
 //
-public class Engine {
+public class Engine extends Thread {
+	final int		INTERVAL_MS = 1000;
 	enum Status {
 		WAITING,
 		RUNNING,
@@ -44,6 +45,15 @@ public class Engine {
 		mStatus = Status.RUNNING;
 		mRound = 1;
 		beforeBattle();
+
+		while (mStatus == Status.RUNNING) {
+			tick();
+			try {
+				sleep(INTERVAL_MS);
+			} catch(InterruptedException ex) {
+				System.out.println("Game thread sleep interrupted");
+			}
+		}
 	}
 
 	private Array<Unit> searchTargets(Unit u) {
@@ -115,23 +125,25 @@ public class Engine {
 		return false;
 	}
 
-	public void tick(float delta) {
+	public void tick(/*float delta*/) {
 		if (mStatus != Status.RUNNING)
 			return ;
 
+		/*
 		long time = TimeUtils.nanoTime();
 		if ((time - mLastTurnTS) < 1 * 1000 * 1000 * 1000) {
 			return ;
 		}
+		*/
 		// update();
 
 		Unit u = getActiveUnit(); // pop queue
 
-		System.out.println("tick: " + time + ": " + u.getOwner().getName() + u.getName() + " acting.");
+		// System.out.println("tick: " + time + ": " + u.getOwner().getName() + u.getName() + " acting.");
 
 		u.runTurn();
 
-		mLastTurnTS = time;
+		// mLastTurnTS = time;
 
 		if (isGameEnd()) {
 			System.out.println("Player '" + mWinner.getName() + "' wins");
