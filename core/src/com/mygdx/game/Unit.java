@@ -15,6 +15,7 @@ import com.badlogic.gdx.scenes.scene2d.utils.*;
 import com.badlogic.gdx.graphics.g2d.*;
 import com.badlogic.gdx.utils.*;
 import com.badlogic.gdx.math.Vector2;
+import java.util.*;
 
 public class Unit {
 	// static public Texture testTexture = new Texture(Gdx.files.internal("bucket.png"));
@@ -24,9 +25,14 @@ public class Unit {
 	// public boolean deployed = false;
 	/* cordinates relative to major */
 
-	class Attack {
+	class Damage {
+
 		private int mAtkPoints;
 		private int mDamageDealt;
+
+		Damage(int atk) {
+			mAtkPoints = atk;
+		}
 	}
 
 	/* constant unit properties */
@@ -38,6 +44,7 @@ public class Unit {
 	private boolean mPrepared;
 	private Unit mMainTarget;
 	private Array<Unit> mAttackingGroup;
+	private LinkedList<Damage> mDamages;
 
 	// free it somehow
 	static private BitmapFont sFont = new BitmapFont();
@@ -82,6 +89,7 @@ public class Unit {
 		mPrepared = false; // for static only;
 		mCurrentHp = mProps.hitpoints;
 		mButton = new UnitButton(this);
+		mDamages = new LinkedList<Damage>();
 	}
 
 	public void deploy(Grid grid, int x, int y) {
@@ -152,9 +160,6 @@ public class Unit {
 		}
 	}
 
-	public void swapTile(Unit unit) {
-	}
-
 	public int getOrder() { return mOrder; }
 	public void setOrder(int o) { mOrder = o; }
 
@@ -178,14 +183,16 @@ public class Unit {
 		return true;
 	}
 
+	private void dealDamage(Damage dmg) {
+		int hp = getHp();
+		hp -= dmg.mAtkPoints;
+		setHp(hp);
+		mDamages.push(dmg); // for UI
+	}
+
 	private void engage(Unit target) {
-		int damage = getAtk();
-		int hp = target.getHp();
-
-		hp -= damage;
-
-		target.setHp(hp);
-
+		// TODO
+		target.dealDamage(new Damage(getAtk()));
 	}
 
 
@@ -231,16 +238,17 @@ public class Unit {
 		float side = 14f;
 		// x -= side;
 		// y += side;
+		x += 24f - side / 2;
 
 		sr.begin(ShapeType.Filled);
-		sr.setColor(Color.GRAY);
+		sr.setColor(Color.ORANGE);
 
 		sr.rect(x, y, side, side);
 		sr.end();
 
 		y += side;
 
-		// sFont.setColor(Color.BLACK);
+		sFont.setColor(Color.BLACK);
 
 		game.mBatch.begin();
 		y -= (side - sFont.getXHeight()) / 2;
@@ -256,13 +264,14 @@ public class Unit {
 	private void drawHpBar(float x, float y, MyGdxGame game) {
 		float percentHp = 1.0f * getHp() / getMaxHp();
 		float thick = 6f;
+		float length = Grid.TILE_EDGE_PXL * Grid.SQRT3;
 		y += 48f - thick;
 		ShapeRenderer sr = game.mShapeRenderer;
 		sr.begin(ShapeType.Filled);
 		sr.setColor(Color.RED);
-		sr.rect(x, y, Grid.TILE_EDGE_PXL, thick);
+		sr.rect(x, y, length, thick);
 		sr.setColor(Color.GREEN);
-		sr.rect(x, y, Grid.TILE_EDGE_PXL * percentHp, thick);
+		sr.rect(x, y, length * percentHp, thick);
 		sr.end();
 	}
 }

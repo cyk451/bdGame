@@ -6,7 +6,7 @@
 			"hitpoints": 100,
 			"damage": 18,
 			"range": "skip",
-			"pattern": [0, 0],
+			"pattern": [0, 0, 1, 0],
 			"type": "troop",
 			"illust_texture": "tank.png",
 			"illust_size": [48, 48],

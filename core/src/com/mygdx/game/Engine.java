@@ -22,7 +22,9 @@ public class Engine extends Thread {
 	}
 
 	static public interface EventListener {
-		/** EngineLister listen to engine's event. Be care about recursive calls.
+		/** 
+		 * EngineLister listen to engine's event. Allow other
+		 * components to capture engine's events and do something.
 		*/
 		// void write(String what, int lastMs);
 		void onRound(int round);
@@ -39,6 +41,8 @@ public class Engine extends Thread {
 	private Player		mFirstPlayer;
 	private Status		mStatus;
 	private EventListener	mListener;
+
+	// LinkedList<Event>	mEvents;
 
 	public Engine(Player []p, EventListener el) {
 		mWinner = null;
@@ -99,7 +103,6 @@ public class Engine extends Thread {
 		mPlayers[0].rewind();
 		mPlayers[1].rewind();
 
-
 		while (finished < 2) {
 			System.out.println("acting " + activePlayer.getName() + " popping");
 			Unit u = activePlayer.getNextUnit();
@@ -155,7 +158,6 @@ public class Engine extends Thread {
 		// update();
 
 		Unit u = getActiveUnit(); // pop queue
-
 		if (u == null) {
 			endRound();
 			return;
@@ -181,7 +183,6 @@ public class Engine extends Thread {
 	}
 
 	private void dealDamage(Unit attacker, Unit attacked) {
-
 		int damage = attacker.getAtk();
 		int hp = attacked.getHp();
 		return;

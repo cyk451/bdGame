@@ -8,6 +8,7 @@ import com.badlogic.gdx.math.*;
 import com.badlogic.gdx.utils.*;
 
 
+
 /* must create left player first */
 public class Player {
 	private Grid			mGrid;

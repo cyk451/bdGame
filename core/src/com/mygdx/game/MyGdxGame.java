@@ -17,6 +17,9 @@ import com.badlogic.gdx.scenes.scene2d.ui.*;
 import com.badlogic.gdx.utils.*;
 import java.util.*;
 
+// import com.badlogic.gdx.backends.lwjgl.LwjglApplication;
+// import com.badlogic.gdx.backends.lwjgl.LwjglApplicationConfiguration;
+
 public class MyGdxGame extends Game{
 	private Skin					mUiSkin;
 	public BitmapFont				mFont;

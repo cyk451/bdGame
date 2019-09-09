@@ -44,22 +44,31 @@ public class UnitProperties {
 
 	public Sprite illustSprite;
 
-	class Pattern extends Array<GridPoint2> {
+	public class Pattern extends Array<GridPoint2> {
 		final int DOT_SIZE = 3;
 		final int EDGE = 8;
-		final int ICON_SIZE = 96;
-		Pattern() { super(); }
-		Pixmap asPixmap() {
-			Pixmap result = new Pixmap(ICON_SIZE, ICON_SIZE, Pixmap.Format.RGB565);
-			result.setColor(Color.RED);
+		final int ICON_SIZE = 48;
+		Sprite mSprite;
+		Pattern() {
+			super();
+		}
+		public Sprite asSprite() {
+			if (mSprite != null)
+				return mSprite;
+			Pixmap pixMap = new Pixmap(ICON_SIZE, ICON_SIZE, Pixmap.Format.RGB565);
+			pixMap.setColor(Color.RED);
 			for (GridPoint2 vec: this) {
-				int x = ICON_SIZE / 2 + (int)vec.x;
-				if (((int)vec.y & 1) == 1)
+				System.out.println("pnt " + vec.x + ", " + vec.y);
+				int x = ICON_SIZE / 2 + EDGE * vec.x;
+				if ((vec.y & 1) == 1)
 					x += EDGE / 2;
-				int y = ICON_SIZE / 2 + (int)vec.y;
-				result.fillCircle(x, y, DOT_SIZE);
+				int y = ICON_SIZE / 2 + EDGE * vec.y;
+				pixMap.fillCircle(x, y, DOT_SIZE);
 			}
-			return result;
+
+			mSprite = new Sprite(new Texture(pixMap));
+			pixMap.dispose();
+			return mSprite;
 		}
 	}
 
@@ -102,11 +111,14 @@ public class UnitProperties {
 				vec.x = patVertJson.asInt();
 			} else {
 				vec.y = patVertJson.asInt();
-				pattern.add(vec);
+				pattern.add(new GridPoint2(vec));
 			}
 			i += 1;
 		}
 		pattern.sort(new PatternVertexComparator());
+		System.out.println("mk " + pattern.get(0).x + ", " + pattern.get(0).y);
+
+		System.out.println(pattern);
 		// Collections.sort(pattern, new PatternVertexComparator());
 	}
 

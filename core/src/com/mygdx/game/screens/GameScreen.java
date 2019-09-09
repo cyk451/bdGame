@@ -96,6 +96,8 @@ public class GameScreen implements Screen {
 
 		// Engine event implementations
 		public void onWin() {
+			// TODO maybe replace this with an image resource
+			// but ok with this until major functions work
 			showMessage("You Win :)", 0);
 		}
 		public void onLose() {
@@ -109,6 +111,7 @@ public class GameScreen implements Screen {
 	public class InformationBar extends Table {
 		private Label mUnitNameLabel;
 		private Label mStatusLabel;
+		private Image mRangePattern;
 		// private ImageButton pattern;
 
 		InformationBar() {
@@ -119,9 +122,12 @@ public class GameScreen implements Screen {
 
 			mUnitNameLabel = new Label("", mGame.getUiSkin());
 			mStatusLabel = new Label("", mGame.getUiSkin());
-			add(mUnitNameLabel).align(Align.left);
+			mRangePattern = new Image();
+			add(mUnitNameLabel).left();
 			row();
-			add(mStatusLabel);
+			add(mStatusLabel).left();
+			row();
+			add(mRangePattern).left();
 
 			mStage.addActor(this);
 		}
@@ -136,6 +142,9 @@ public class GameScreen implements Screen {
 		public void setInformation(Unit u) {
 			mUnitNameLabel.setText("" + u.getType() + " - " + u.getName());
 			mStatusLabel.setText("HP: " + u.getHp()+ " DMG: " + u.getAtk() + " " + u.getRange());
+
+			mRangePattern.setDrawable(new SpriteDrawable(u.getPattern().asSprite()));
+
 			drawAttackArea();
 		}
 
