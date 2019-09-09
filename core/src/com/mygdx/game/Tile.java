@@ -9,6 +9,7 @@ import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.EarClippingTriangulator;
 import com.badlogic.gdx.math.Polygon;
 import com.badlogic.gdx.math.Vector3;
+import com.badlogic.gdx.math.Vector2;
 import java.util.Arrays;
 
 
@@ -17,8 +18,8 @@ public class Tile extends Polygon {
 	// private Color color = Color.RED;
 	private Player	mOwner;
 	private Unit	mUnit;
-	private float 	[]mRenderSpot;
-	private float	[]mTransformed;
+	private Vector2 mRenderSpot;
+	private float[] mTransformed;
 
 	static Tile highlight = null;
 
@@ -48,15 +49,16 @@ public class Tile extends Polygon {
 		mTransformed = getTransformedVertices();
 		// this is some constant actually
 		float []arr = mTransformed;
-		mRenderSpot = new float[]{
+		mRenderSpot = new Vector2(
 			(arr[0] + arr[6]),
 			(arr[1] + arr[7])
-		};
-		mRenderSpot[0] *= 0.5;
-		mRenderSpot[1] *= 0.5;
+		);
+		mRenderSpot.x *= 0.5;
+		mRenderSpot.y *= 0.5;
 
-		mRenderSpot[1] -= 48 / 2;
-		mRenderSpot[0] -= 48 / 2;
+		// TODO don't hardcode here
+		mRenderSpot.x -= 48 / 2;
+		mRenderSpot.y -= 48 / 2;
 	}
 
 

@@ -14,6 +14,7 @@ import com.badlogic.gdx.scenes.scene2d.ui.*;
 import com.badlogic.gdx.scenes.scene2d.utils.*;
 import com.badlogic.gdx.graphics.g2d.*;
 import com.badlogic.gdx.utils.*;
+import com.badlogic.gdx.math.Vector2;
 
 public class Unit {
 	// static public Texture testTexture = new Texture(Gdx.files.internal("bucket.png"));
@@ -211,32 +212,57 @@ public class Unit {
 		// for (ab: mProps.abilities) { ab.do }
 	}
 
-	public void render(float[] spot, MyGdxGame game) {
+	public void render(Vector2 spot, MyGdxGame game) {
 		// just render here.
 		Sprite sprite = isDead()? UnitProperties.sDebrickSprite: getIllust();
 
 		game.mBatch.begin();
-
-		game.mBatch.draw(sprite, spot[0], spot[1]);
-		sFont.draw(game.mBatch, "" + getOrder(),
-				spot[0], spot[1]);
-
+		game.mBatch.draw(sprite, spot.x, spot.y);
 		game.mBatch.end();
 
-		drawHpBar(spot, game);
+		drawHpBar(spot.x, spot.y, game);
 
+		drawOrderIcon(spot.x, spot.y, game);
 		// sFont.dispose();
 	}
 
-	public void drawHpBar(float[] where, MyGdxGame game) {
+	private void drawOrderIcon(float x, float y, MyGdxGame game) {
+		ShapeRenderer sr = game.mShapeRenderer;
+		float side = 14f;
+		// x -= side;
+		// y += side;
+
+		sr.begin(ShapeType.Filled);
+		sr.setColor(Color.GRAY);
+
+		sr.rect(x, y, side, side);
+		sr.end();
+
+		y += side;
+
+		// sFont.setColor(Color.BLACK);
+
+		game.mBatch.begin();
+		y -= (side - sFont.getXHeight()) / 2;
+		sFont.draw(game.mBatch, "" + getOrder(),
+				x, y,
+				side, //width
+				Align.center,
+				false // wrap
+				);
+		game.mBatch.end();
+	}
+
+	private void drawHpBar(float x, float y, MyGdxGame game) {
 		float percentHp = 1.0f * getHp() / getMaxHp();
+		float thick = 6f;
+		y += 48f - thick;
 		ShapeRenderer sr = game.mShapeRenderer;
 		sr.begin(ShapeType.Filled);
 		sr.setColor(Color.RED);
-		sr.rect(where[0], where[1], Grid.TILE_EDGE_PXL, 3);
+		sr.rect(x, y, Grid.TILE_EDGE_PXL, thick);
 		sr.setColor(Color.GREEN);
-		sr.rect(where[0], where[1],
-				Grid.TILE_EDGE_PXL * percentHp, 3);
+		sr.rect(x, y, Grid.TILE_EDGE_PXL * percentHp, thick);
 		sr.end();
 	}
 }
