@@ -33,40 +33,86 @@ import java.util.Iterator;
 public class GameScreen implements Screen {
 	static final float DEFAULT_SCREEN_HEIGHT	= 480;
 	static final float DEFAULT_SCREEN_WIDTH		= 800;
-	static final float BOTTON_FRAME_HEIGHT		= 80;
+	static final float BOTTOM_FRAME_HEIGHT		= 80;
 	static final float TOP_FRAME_HEIGHT		= 100;
+	static final float CENTER_FRAME_HEIGHT		= 300;
 
 	final MyGdxGame			mGame;
 	private Engine			mEngine;
 	public OrthographicCamera	mCamera;
 	public Stage			mStage;
+	public Table			mRootTable;
 
 	// static variables
 	static public UnitSelectBar	sUnitSelectBar;
 	static public InformationBar	sInfoBar;
 	static Player			[]sPlayers;
 	static Array<Unit>		sUnitList;
+	static TopMessage		sTopMessage;
 	static boolean			sChangingOrder = false;
 
 	public GameScreen(final MyGdxGame g) {
 		mGame = g;
 	}
 
-	private void loadScene() {
-		// load the mStage for enemy player
-		//
-		sPlayers[1].applyFormation(mGame.mFormation);
+	public static void setTopMessage(String what, int lastMs) {
+		sTopMessage.showMessage(what, lastMs);
+	}
+
+	public class TopMessage extends Table implements Engine.EventListener {
+		Label mMessageLabel;
+		TopMessage() {
+			super();
+
+			// align(Align.center);
+
+			mMessageLabel = new Label("", mGame.getUiSkin());
+			mMessageLabel.setFontScale(3.0f);
+			add(mMessageLabel).expandX();
+
+			mStage.addActor(this);
+		}
+
+		void showMessage(String what, int lastMs) {
+			mMessageLabel.setText(what);
+			if (lastMs <= 0) // no timeout
+				return ;
+			java.util.Timer t = new java.util.Timer();
+			java.util.TimerTask resetTask = new java.util.TimerTask() {
+				@Override
+				public void run() {
+					mMessageLabel.setText("");
+				}
+			};
+			t.schedule(resetTask, lastMs);
+		}
+
+		void updateGeometry(float w, float h) {
+			setWidth(w);
+			float height = h * CENTER_FRAME_HEIGHT / DEFAULT_SCREEN_HEIGHT;
+			setHeight(height);
+			setPosition(0, h * BOTTOM_FRAME_HEIGHT / DEFAULT_SCREEN_HEIGHT);
+		}
+
+		// Engine event implementations
+		public void onWin() {
+			showMessage("You Win :)", 0);
+		}
+		public void onLose() {
+			showMessage("You Lose :(", 0);
+		}
+		public void onRound(int round) {
+			showMessage("Round" + round, 1000);
+		}
 	}
 
 	public class InformationBar extends Table {
-		private Stage mStage;
 		private Label mUnitNameLabel;
 		private Label mStatusLabel;
 		// private ImageButton pattern;
 
-		InformationBar(Stage parent) {
+		InformationBar() {
 			super();
-			mStage = parent;
 
 			align(Align.topLeft);
 			pad(5.0f);
@@ -100,21 +146,19 @@ public class GameScreen implements Screen {
 
 
 	public class UnitSelectBar extends Table {
-		private Stage		mStage;
 		private HorizontalGroup	mUnitListGroup;
 
-		UnitSelectBar(Stage parent) {
+		UnitSelectBar() {
 			super();
-			mStage = parent;
 			mUnitListGroup = new HorizontalGroup();
 
 			align(Align.left);
 			pad(5.0f);
 
 			Button startButton = new TextButton("Fight", mGame.getUiSkin());
-			startButton.addListener(new ClickListener(){
+			startButton.addListener(new ClickListener() {
 				@Override
-				public void clicked(InputEvent event, float x, float y){
+				public void clicked(InputEvent event, float x, float y) {
 					System.out.println("Fight starts");
 					// mEngine.run();
 					mEngine.start();
@@ -124,9 +168,9 @@ public class GameScreen implements Screen {
 			add(startButton);
 
 			Button orderButton = new TextButton("Order", mGame.getUiSkin());
-			startButton.addListener(new ClickListener(){
+			startButton.addListener(new ClickListener() {
 				@Override
-				public void clicked(InputEvent event, float x, float y){
+				public void clicked(InputEvent event, float x, float y) {
 					System.out.println("Changing toggled");
 					sChangingOrder = !sChangingOrder;
 					// mEngine.run();
@@ -147,7 +191,7 @@ public class GameScreen implements Screen {
 		}
 
 		void updateGeometry(float w, float h) {
-			float height = h * BOTTON_FRAME_HEIGHT / DEFAULT_SCREEN_HEIGHT;
+			float height = h * BOTTOM_FRAME_HEIGHT / DEFAULT_SCREEN_HEIGHT;
 
 			setWidth(w);
 			setHeight(height);
@@ -166,8 +210,13 @@ public class GameScreen implements Screen {
 
 	private void createUi() {
 		mStage		= new Stage(new ScreenViewport());
-		sUnitSelectBar	= new UnitSelectBar(mStage);
-		sInfoBar	= new InformationBar(mStage);
+		mRootTable	= new Table();
+		// mRootTable.setFillParent(true);
+		// mStage.addActor(mRootTable);
+
+		sUnitSelectBar	= new UnitSelectBar();
+		sInfoBar	= new InformationBar();
+		sTopMessage	= new TopMessage();
 
 		InputMultiplexer multiplexer = new InputMultiplexer();
 		final Vector3 tp = new Vector3();
@@ -204,7 +253,7 @@ public class GameScreen implements Screen {
 
 		mStage.act(Gdx.graphics.getDeltaTime());
 		mStage.draw();
-		// mStage.setDebugAll(true);
+		mStage.setDebugAll(true);
 	}
 
 	@Override
@@ -213,12 +262,14 @@ public class GameScreen implements Screen {
 			sInfoBar.updateGeometry(width, height);
 		if (sUnitSelectBar != null)
 			sUnitSelectBar.updateGeometry(width, height);
+		if (sTopMessage != null)
+			sTopMessage.updateGeometry(width, height);
 		mStage.getViewport().update(width, height, true);
 	}
 
 	private void spawnPlayers() {
-		Player us = new Player(0, BOTTON_FRAME_HEIGHT, null, Color.BLUE).setName("Player");
-		Player them = new Player(0, BOTTON_FRAME_HEIGHT, us, Color.RED).setName("Enemy");
+		Player us = new Player(0, BOTTOM_FRAME_HEIGHT, null, Color.BLUE).setName("Player");
+		Player them = new Player(0, BOTTOM_FRAME_HEIGHT, us, Color.RED).setName("Enemy");
 		sPlayers = new Player[]{us, them};
 	}
 
@@ -235,11 +286,11 @@ public class GameScreen implements Screen {
 		for (UnitProperties up: mGame.mUnitPropList)
 			sUnitList.add(new Unit(up, sPlayers[0]));
 
-		mEngine = new Engine(sPlayers);
-
 		createUi();
 
 		loadScene();
+
+		mEngine = new Engine(sPlayers, sTopMessage);
 	}
 
 	@Override
@@ -261,6 +312,10 @@ public class GameScreen implements Screen {
 
 	public static Player getControllingPlayer() {
 		return sPlayers[0];
+	}
+
+	private void loadScene() {
+		sPlayers[1].applyFormation(mGame.mFormation);
 	}
 
 }

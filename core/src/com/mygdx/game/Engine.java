@@ -21,6 +21,15 @@ public class Engine extends Thread {
 		FINISHED
 	}
 
+	static public interface EventListener {
+		/** EngineLister listen to engine's event. Be care about recursive calls.
+		*/
+		// void write(String what, int lastMs);
+		void onRound(int round);
+		void onLose();
+		void onWin();
+	}
+
 	final Player 		[]mPlayers;
 	Player			mWinner;
 	int			mRound;
@@ -29,11 +38,13 @@ public class Engine extends Thread {
 	private long		mLastTurnTS;
 	private Player		mFirstPlayer;
 	private Status		mStatus;
+	private EventListener	mListener;
 
-	public Engine(Player []p) {
+	public Engine(Player []p, EventListener el) {
 		mWinner = null;
 		mStatus = Status.WAITING;
 		mPlayers = p;
+		mListener = el;
 		mFirstPlayer = mPlayers[0];
 	}
 
@@ -44,6 +55,7 @@ public class Engine extends Thread {
 	public void run() {
 		mStatus = Status.RUNNING;
 		mRound = 1;
+		mListener.onRound(mRound);
 		beforeBattle();
 
 		while (mStatus == Status.RUNNING) {
@@ -54,6 +66,12 @@ public class Engine extends Thread {
 				System.out.println("Game thread sleep interrupted");
 			}
 		}
+		if (mPlayers[0].isLose())
+			mListener.onLose();
+		else
+			mListener.onWin();
+		System.out.println("battle thread ended");
+
 	}
 
 	private Array<Unit> searchTargets(Unit u) {
@@ -107,10 +125,10 @@ public class Engine extends Thread {
 		}
 		// round over, next round
 		mUnitQueue = formGlobalOrderList();
-		if (mUnitQueue.size() == 0)
-			return null;
-		endRound();
-		return mUnitQueue.pop();
+		// if (mUnitQueue.size() == 0)
+		return null;
+		// endRound();
+		// return mUnitQueue.pop();
 	}
 
 	public boolean isGameEnd() {
@@ -139,6 +157,11 @@ public class Engine extends Thread {
 
 		Unit u = getActiveUnit(); // pop queue
 
+		if (u == null) {
+			endRound();
+			return;
+		}
+
 		// System.out.println("tick: " + time + ": " + u.getOwner().getName() + u.getName() + " acting.");
 
 		u.runTurn();
@@ -155,6 +178,7 @@ public class Engine extends Thread {
 	private void endRound() {
 		// do anything required for round ending
 		mRound += 1;
+		mListener.onRound(mRound);
 	}
 
 	private void dealDamage(Unit attacker, Unit attacked) {
