@@ -22,7 +22,7 @@ public class Engine extends Thread {
 	}
 
 	static public interface EventListener {
-		/** 
+		/**
 		 * EngineLister listen to engine's event. Allow other
 		 * components to capture engine's events and do something.
 		*/
@@ -34,9 +34,10 @@ public class Engine extends Thread {
 
 	final Player 		[]mPlayers;
 	Player			mWinner;
+	private Unit		mActiveUnit;
 	int			mRound;
 	// TODO render this queue under bottom tab
-	LinkedList<Unit>	mUnitQueue;
+	Queue<Unit>		mUnitQueue;
 	private long		mLastTurnTS;
 	private Player		mFirstPlayer;
 	private Status		mStatus;
@@ -95,9 +96,9 @@ public class Engine extends Thread {
 		return result;
 	}
 
-	private LinkedList<Unit> formGlobalOrderList() {
+	private Queue<Unit> formGlobalOrderList() {
 		Player activePlayer = mFirstPlayer;
-		LinkedList<Unit> list = new LinkedList<Unit>();
+		Queue<Unit> list = new LinkedList<Unit>();
 		int finished = 0;
 
 		mPlayers[0].rewind();
@@ -112,7 +113,7 @@ public class Engine extends Thread {
 				continue;
 			}
 			System.out.println(activePlayer.getName() + " enqueue one unit");
-			list.push(u);
+			list.add(u);
 			if (u.switchPlayer())
 				activePlayer = activePlayer.getOpponent();
 		}
@@ -123,14 +124,11 @@ public class Engine extends Thread {
 	// here some dead unit are removed.
 	private Unit getActiveUnit() {
 		if (mUnitQueue.size() != 0) {
-			return mUnitQueue.pop();
+			return mUnitQueue.remove();
 		}
 		// round over, next round
 		mUnitQueue = formGlobalOrderList();
-		// if (mUnitQueue.size() == 0)
 		return null;
-		// endRound();
-		// return mUnitQueue.pop();
 	}
 
 	public boolean isGameEnd() {
@@ -157,15 +155,20 @@ public class Engine extends Thread {
 		*/
 		// update();
 
-		Unit u = getActiveUnit(); // pop queue
-		if (u == null) {
+		if (mActiveUnit != null)
+			mActiveUnit.setActive(false);
+
+		mActiveUnit = getActiveUnit(); // pop queue
+		if (mActiveUnit == null) {
 			endRound();
 			return;
 		}
 
+		mActiveUnit.setActive(true);
+
 		// System.out.println("tick: " + time + ": " + u.getOwner().getName() + u.getName() + " acting.");
 
-		u.runTurn();
+		mActiveUnit.runTurn();
 
 		// mLastTurnTS = time;
 

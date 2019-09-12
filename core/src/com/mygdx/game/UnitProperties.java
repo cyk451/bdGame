@@ -24,16 +24,18 @@ import java.util.*;
 public class UnitProperties {
 	// static Texture testTexture = new Texture(Gdx.files.internal("bucket.png"));
 
-	static Array<UnitProperties> unitPool = new Array<UnitProperties>();
+	static public Array<UnitProperties> sUnitSet = new Array<UnitProperties>();
+	static private EnumMap<Type, Color> sUnitMap;
 
 	public enum Range { FIRST, SKIP, LAST };
 	public enum Type { TROOP, INFRA, STATIC, TURRET };
+
 
 	static public Sprite sDebrickSprite = loadDebrickSprite();
 	public String name;
 	public String flavorText;
 
-	// this id is given when resource loaded; should match its index in unitPool.
+	// this id is given when resource loaded; should match its index in sUnitSet.
 	public int		id;
 	public int		hitpoints;
 	public int		damage;
@@ -99,9 +101,9 @@ public class UnitProperties {
 		Texture texture = new Texture(Gdx.files.internal(json.getString("illust_texture")));
 		illustSprite = new Sprite(texture);
 
-		id = unitPool.size;
+		id = sUnitSet.size;
 
-		unitPool.add(this);
+		sUnitSet.add(this);
 		JsonValue patternJson = json.get("pattern");
 		int i = 0;
 		GridPoint2 vec = new GridPoint2();

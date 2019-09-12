@@ -168,7 +168,7 @@ public class Player {
 		return mBattleUnitCount == 0;
 	}
 
-	public static class Formation {
+	static public class Formation {
 		public class Deployment {
 			int mX;
 			int mY;

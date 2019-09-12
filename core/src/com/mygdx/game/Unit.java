@@ -39,35 +39,35 @@ public class Unit {
 	final private UnitProperties mProps;
 
 	private int gridX, gridY;
-	private int mOrder;
-	private int mCurrentHp;
-	private boolean mPrepared;
-	private Unit mMainTarget;
-	private Array<Unit> mAttackingGroup;
-	private LinkedList<Damage> mDamages;
+	private int			mOrder;
+	private int			mCurrentHp;
+	private boolean			mPrepared;
+	private Unit			mMainTarget;
+	private Array<Unit>		mAttackingGroup;
+	private Queue<Damage> 		mReceivedDamages;
+	private boolean			mActive;
 
 	// free it somehow
 	static private BitmapFont sFont = new BitmapFont();
 
 	// private float posX, posY;
-	Player mOwner;
-	Tile mTile;
-	UnitButton mButton;
+	Player		mOwner;
+	Tile		mTile;
+	DeployButton	mButton;
 
 	private Buff[] mBuffs;
 
-	public class UnitButton extends ImageButton {
-		Unit mUnit;
-		UnitButton(Unit u) {
-			super(new SpriteDrawable(u.getIllust()));
-			mUnit = u;
+	public class DeployButton extends ImageButton {
+		DeployButton() {
+			super(new SpriteDrawable(getIllust()));
 			addListener(new ClickListener(){
 				@Override
 				public void clicked(InputEvent event, float x, float y){
-					System.out.println(mUnit.getName() + " selected...");
-					if (!mUnit.isDeployed())
-						sChosenUnit = mUnit;
-					GameScreen.sInfoBar.setInformation(mUnit);
+					Unit u = Unit.this;
+					System.out.println(getName() + " selected...");
+					if (!isDeployed())
+						sChosenUnit = u;
+					GameScreen.sInfoBar.setInformation(u);
 				}
 			});
 		}
@@ -88,8 +88,8 @@ public class Unit {
 		mOrder = -1;
 		mPrepared = false; // for static only;
 		mCurrentHp = mProps.hitpoints;
-		mButton = new UnitButton(this);
-		mDamages = new LinkedList<Damage>();
+		mButton = new DeployButton();
+		mReceivedDamages = new LinkedList<Damage>();
 	}
 
 	public void deploy(Grid grid, int x, int y) {
@@ -187,11 +187,10 @@ public class Unit {
 		int hp = getHp();
 		hp -= dmg.mAtkPoints;
 		setHp(hp);
-		mDamages.push(dmg); // for UI
+		mReceivedDamages.add(dmg); // for UI
 	}
 
 	private void engage(Unit target) {
-		// TODO
 		target.dealDamage(new Damage(getAtk()));
 	}
 
@@ -241,7 +240,7 @@ public class Unit {
 		x += 24f - side / 2;
 
 		sr.begin(ShapeType.Filled);
-		sr.setColor(Color.ORANGE);
+		sr.setColor(mActive? Color.RED: Color.ORANGE);
 
 		sr.rect(x, y, side, side);
 		sr.end();
@@ -274,4 +273,6 @@ public class Unit {
 		sr.rect(x, y, length * percentHp, thick);
 		sr.end();
 	}
+
+	public void setActive(boolean act) { mActive = act; }
 }
