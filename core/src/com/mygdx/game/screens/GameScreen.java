@@ -24,6 +24,8 @@ import com.badlogic.gdx.scenes.scene2d.ui.*;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.scenes.scene2d.utils.SpriteDrawable;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
+import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
+import com.badlogic.gdx.graphics.glutils.ShapeRenderer.ShapeType;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.utils.*;
 import com.badlogic.gdx.utils.viewport.*;
@@ -42,6 +44,7 @@ public class GameScreen implements Screen {
 	public OrthographicCamera	mCamera;
 	public Stage			mStage;
 	public Table			mRootTable;
+	private Viewport		mViewport;
 
 	// static variables
 	static public UnitSelectBar	sUnitSelectBar;
@@ -70,7 +73,7 @@ public class GameScreen implements Screen {
 			mMessageLabel.setFontScale(3.0f);
 			add(mMessageLabel).expandX();
 
-			mStage.addActor(this);
+			// mStage.addActor(this);
 		}
 
 		void showMessage(String what, int lastMs) {
@@ -85,13 +88,6 @@ public class GameScreen implements Screen {
 				}
 			};
 			t.schedule(resetTask, lastMs);
-		}
-
-		void updateGeometry(float w, float h) {
-			setWidth(w);
-			float height = h * CENTER_FRAME_HEIGHT / DEFAULT_SCREEN_HEIGHT;
-			setHeight(height);
-			setPosition(0, h * BOTTOM_FRAME_HEIGHT / DEFAULT_SCREEN_HEIGHT);
 		}
 
 		// Engine event implementations
@@ -118,7 +114,7 @@ public class GameScreen implements Screen {
 			super();
 
 			align(Align.topLeft);
-			pad(5.0f);
+			// pad(5.0f);
 
 			mUnitNameLabel = new Label("", mGame.getUiSkin());
 			mStatusLabel = new Label("", mGame.getUiSkin());
@@ -129,14 +125,6 @@ public class GameScreen implements Screen {
 			row();
 			add(mRangePattern).left();
 
-			mStage.addActor(this);
-		}
-
-		void updateGeometry(float w, float h) {
-			setWidth(w);
-			float height = h * TOP_FRAME_HEIGHT / DEFAULT_SCREEN_HEIGHT;
-			setHeight(height);
-			setPosition(0, h - height);
 		}
 
 		public void setInformation(Unit u) {
@@ -161,7 +149,6 @@ public class GameScreen implements Screen {
 			super();
 			mUnitListGroup = new HorizontalGroup();
 
-			align(Align.left);
 			pad(5.0f);
 
 			Button startButton = new TextButton("Fight", mGame.getUiSkin());
@@ -169,7 +156,6 @@ public class GameScreen implements Screen {
 				@Override
 				public void clicked(InputEvent event, float x, float y) {
 					System.out.println("Fight starts");
-					// mEngine.run();
 					mEngine.start();
 				}
 			});
@@ -182,7 +168,6 @@ public class GameScreen implements Screen {
 				public void clicked(InputEvent event, float x, float y) {
 					System.out.println("Changing toggled");
 					sChangingOrder = !sChangingOrder;
-					// mEngine.run();
 				}
 			});
 
@@ -192,19 +177,8 @@ public class GameScreen implements Screen {
 				mUnitListGroup.addActor(u.asButton());
 			}
 			ScrollPane sp = new ScrollPane(mUnitListGroup, mGame.getUiSkin());
-			// sp.setScrollbarsVisible(false);
-			// sp.setScrollbarTouch(false);
 
 			add(sp);
-			mStage.addActor(this);
-		}
-
-		void updateGeometry(float w, float h) {
-			float height = h * BOTTOM_FRAME_HEIGHT / DEFAULT_SCREEN_HEIGHT;
-
-			setWidth(w);
-			setHeight(height);
-			setPosition(0, 0);
 		}
 
 		public void addButton(ImageButton button) {
@@ -218,23 +192,45 @@ public class GameScreen implements Screen {
 	}
 
 	private void createUi() {
-		mStage		= new Stage(new ScreenViewport());
+		mViewport	= new FitViewport(DEFAULT_SCREEN_WIDTH, DEFAULT_SCREEN_HEIGHT, mCamera);
+		mViewport.apply();
+		mStage		= new Stage(mViewport);
 		mRootTable	= new Table();
-		// mRootTable.setFillParent(true);
-		// mStage.addActor(mRootTable);
+
+		mRootTable.setFillParent(true);
+		mStage.addActor(mRootTable);
 
 		sUnitSelectBar	= new UnitSelectBar();
 		sInfoBar	= new InformationBar();
 		sTopMessage	= new TopMessage();
+
+		mRootTable.top();
+
+		mRootTable.add(sInfoBar).left().top().expandX().height(Value.percentHeight(100f/480, mRootTable));
+		mRootTable.row();
+		mRootTable.add(sTopMessage).pad(5.0f).expandX().height(Value.percentHeight(300f/480, mRootTable));
+		mRootTable.row();
+		mRootTable.add(sUnitSelectBar).left().bottom().expand();
 
 		InputMultiplexer multiplexer = new InputMultiplexer();
 		final Vector3 tp = new Vector3();
 		multiplexer.addProcessor(new InputAdapter() {
 			@Override
 			public boolean touchDown(int x, int y, int pointer, int button) {
-				mCamera.unproject(tp.set(x, y, 0));
+				Gdx.app.log("Mouse Event","Click at " + x + "," + y);
+				Vector3 np = mViewport.unproject(tp.set(x, y, 0));
+				Gdx.app.log("Mouse Event","Click at " + tp.x + "," + tp.y);
 				for (Player player : sPlayers)
-					if (player.handleTouch(tp))
+					if (player.handleTouch(np))
+						return true;
+				return false;
+			}
+
+			@Override
+			public boolean touchUp(int x, int y, int pointer, int button) {
+				Vector3 np = mViewport.unproject(tp.set(x, y, 0));
+				for (Player player : sPlayers)
+					if (player.handleUp(np))
 						return true;
 				return false;
 			}
@@ -246,13 +242,21 @@ public class GameScreen implements Screen {
 
 	@Override
 	public void render(float delta) {
-		Gdx.gl.glClearColor(0, 0, 0, 1);
+		Gdx.gl.glClearColor(0.5f, 0.5f, 0.5f, 1);
 		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
 		mCamera.update();
 
 		mGame.mBatch.setProjectionMatrix(mCamera.combined);
 		mGame.mShapeRenderer.setProjectionMatrix(mCamera.combined);
+
+		ShapeRenderer sr = mGame.mShapeRenderer;
+
+		sr.begin(ShapeType.Line);
+		sr.setColor(Color.YELLOW);
+		sr.rect(1, 1, 799, 479);
+		sr.end();
+
 
 		for (Player player : sPlayers) {
 			player.render(mGame);
@@ -267,12 +271,6 @@ public class GameScreen implements Screen {
 
 	@Override
 	public void resize(int width, int height) {
-		if (sInfoBar != null)
-			sInfoBar.updateGeometry(width, height);
-		if (sUnitSelectBar != null)
-			sUnitSelectBar.updateGeometry(width, height);
-		if (sTopMessage != null)
-			sTopMessage.updateGeometry(width, height);
 		mStage.getViewport().update(width, height, true);
 	}
 

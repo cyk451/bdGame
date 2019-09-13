@@ -14,14 +14,13 @@ import java.util.Arrays;
 
 
 public class Tile extends Polygon {
-	private PolygonRegion polygonRegion = null;
 	// private Color color = Color.RED;
 	private Player	mOwner;
 	private Unit	mUnit;
 	private Vector2 mRenderSpot;
 	private float[] mTransformed;
 
-	static Tile highlight = null;
+	static Tile sHighlight = null;
 
 	public int mX, mY;
 
@@ -50,11 +49,9 @@ public class Tile extends Polygon {
 		// this is some constant actually
 		float []arr = mTransformed;
 		mRenderSpot = new Vector2(
-			(arr[0] + arr[6]),
-			(arr[1] + arr[7])
+			(arr[0] + arr[6]) * 0.5f,
+			(arr[1] + arr[7]) * 0.5f
 		);
-		mRenderSpot.x *= 0.5;
-		mRenderSpot.y *= 0.5;
 
 		// TODO don't hardcode here
 		mRenderSpot.x -= 48 / 2;
@@ -62,18 +59,31 @@ public class Tile extends Polygon {
 	}
 
 
-	public PolygonRegion getPolygonRegion() {
-		return polygonRegion;
-	}
-
 	public void render(MyGdxGame game) {
 
 		ShapeRenderer sr = game.mShapeRenderer;
 
+		/*
 		sr.begin(ShapeType.Line);
 
-		sr.setColor((highlight == this)? Color.WHITE: getColor());
+		sr.setColor((sHighlight == this)? Color.WHITE: getColor());
 		sr.polygon(mTransformed);
+		sr.end();
+		*/
+
+		float radius = Grid.TILE_EDGE_PXL * 0.8f;
+		float x = mRenderSpot.x + 48 / 2;
+		float y = mRenderSpot.y + 48 / 2;
+		sr.begin(ShapeType.Filled);
+
+		sr.setColor(Color.GRAY);
+		sr.circle(x, y, radius);
+		sr.end();
+
+		sr.begin(ShapeType.Line);
+
+		sr.setColor((sHighlight == this)? Color.WHITE: getColor());
+		sr.circle(x, y, radius);
 		sr.end();
 
 		if (mUnit != null)
@@ -109,34 +119,41 @@ public class Tile extends Polygon {
 	 */
 	// return boolean: is touch event handled.
 	public boolean handleTouch(Vector3 pos) {
-		if (contains(pos.x, pos.y)) {
-			highlight = this;
+		if (!contains(pos.x, pos.y))
+			return false;
 
-			if (Unit.sChosenUnit != null) {
-				if (GameScreen.getControllingPlayer().deployUnit(Unit.sChosenUnit, this))
-					Unit.sChosenUnit = null;
-				return true;
-			}
+		sHighlight = this;
 
-			if (!isClear()) {
-				System.out.println("select it");
-				Unit.sChosenUnit = mUnit;
-				GameScreen.sInfoBar.setInformation(mUnit);
-			}
-			return true;
+		if (Unit.sChosenUnit == null && !isClear()) {
+			System.out.println("select it");
+			Unit.sChosenUnit = mUnit;
+			GameScreen.sInfoBar.setInformation(mUnit);
 		}
-		return false;
+		return true;
+	}
+
+	public boolean handleUp(Vector3 pos) {
+		if (!contains(pos.x, pos.y))
+			return false;
+
+		Unit temp = Unit.sChosenUnit;
+
+		if (temp == null)
+			return true;
+
+		Unit.sChosenUnit = null;
+
+		if (temp == mUnit)
+			return true;
+
+		System.out.println("deploying it");
+		boolean handled = GameScreen.getControllingPlayer().deployUnit(temp, this);
+		return handled;
 	}
 
 	private boolean isClear() { return mUnit == null; }
 
 	private void clear() {
-		/*
-		Sprite unitSprite = mUnit.getIllust();
-
-		mRenderSpot[1] += unitSprite.getHeight() / 2;
-		mRenderSpot[0] += unitSprite.getWidth() / 2;
-		*/
 		mUnit = null;
 	}
 }

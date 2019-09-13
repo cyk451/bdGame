@@ -48,13 +48,40 @@ public class Player {
 		return mGrid.handleTouch(pos);
 	}
 
+	public boolean handleUp(Vector3 pos) {
+		return mGrid.handleUp(pos);
+	}
+
 	public void addUnit(Unit u) {
+		updateOrder();
+
+		if (mOrderList.indexOf(u, false) != -1)
+			return;
+
 		mOrderList.add(u);
 
 		u.setOrder(mOrderList.size);
 		System.out.println(u + " is " + u.getOrder());
 		if (u.getType() != UnitProperties.Type.INFRA)
 			mBattleUnitCount += 1;
+
+	}
+	private void updateOrder() {
+		Array<Unit> toBeRemoved = new Array<Unit>();
+
+		int i = 1;
+		for (Unit u: mOrderList) {
+			if (u.getTile() == null) {
+				toBeRemoved.add(u);
+				continue;
+			}
+			u.setOrder(i++);
+		}
+
+		for (Unit u: toBeRemoved) {
+			mOrderList.removeValue(u, true);
+			u.setOrder(-1);
+		}
 	}
 
 	public void notifyUnitLost(Unit u) {
@@ -240,6 +267,7 @@ public class Player {
 			}
 		}
 		toBeDeployed.setTile(tile);
+		addUnit(toBeDeployed);
 		return true;
 	}
 

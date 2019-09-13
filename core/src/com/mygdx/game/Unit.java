@@ -152,11 +152,11 @@ public class Unit {
 			mTile.setUnit(this);
 			if (mOwner == GameScreen.getControllingPlayer())
 				GameScreen.sUnitSelectBar.removeButton(asButton());
-			mOwner.addUnit(this);
+			// mOwner.addUnit(this);
 		} else {
 			if (mOwner == GameScreen.getControllingPlayer())
 				GameScreen.sUnitSelectBar.addButton(asButton());
-			mOwner.removeUnit(this);
+			// mOwner.removeUnit(this);
 		}
 	}
 
@@ -262,15 +262,15 @@ public class Unit {
 
 	private void drawHpBar(float x, float y, MyGdxGame game) {
 		float percentHp = 1.0f * getHp() / getMaxHp();
-		float thick = 6f;
-		float length = Grid.TILE_EDGE_PXL * Grid.SQRT3;
-		y += 48f - thick;
+		float thick = 40f;
+		float length = 6f;
+		x -= length;
 		ShapeRenderer sr = game.mShapeRenderer;
 		sr.begin(ShapeType.Filled);
 		sr.setColor(Color.RED);
 		sr.rect(x, y, length, thick);
 		sr.setColor(Color.GREEN);
-		sr.rect(x, y, length * percentHp, thick);
+		sr.rect(x, y, length, thick * percentHp);
 		sr.end();
 	}
 
