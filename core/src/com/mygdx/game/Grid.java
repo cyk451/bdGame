@@ -1,6 +1,7 @@
 package com.mygdx.game;
 
 import java.util.Iterator;
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
@@ -125,6 +126,7 @@ class Grid {
 	}
 
 	public boolean handleTouch(Vector3 pos) {
+		Gdx.app.log("Grid","recieved at " + pos.x + "," + pos.y);
 		if (!contains(pos))
 			return false;
 		// System.out.println("grid is pressed...");
@@ -137,6 +139,20 @@ class Grid {
 			for (Iterator<Tile> titer = lane.iterator(); titer.hasNext(); ) {
 				Tile tile = titer.next();
 				if (tile.handleTouch(pos))
+					return true;
+			}
+		}
+		return false;
+	}
+
+	public boolean handleUp(Vector3 pos) {
+		if (!contains(pos))
+			return false;
+		for (Iterator<Lane> liter = mLanes.iterator(); liter.hasNext();) {
+			Array<Tile> lane = liter.next();
+			for (Iterator<Tile> titer = lane.iterator(); titer.hasNext(); ) {
+				Tile tile = titer.next();
+				if (tile.handleUp(pos))
 					return true;
 			}
 		}

@@ -46,10 +46,10 @@ public class UnitProperties {
 
 	public Sprite illustSprite;
 
-	public class Pattern extends Array<GridPoint2> {
-		final int DOT_SIZE = 3;
-		final int EDGE = 8;
-		final int ICON_SIZE = 48;
+	static public class Pattern extends Array<GridPoint2> {
+		final static int DOT_SIZE = 3;
+		final static int EDGE = 8;
+		final static int ICON_SIZE = 48;
 		Sprite mSprite;
 		Pattern() {
 			super();
@@ -58,6 +58,17 @@ public class UnitProperties {
 			if (mSprite != null)
 				return mSprite;
 			Pixmap pixMap = new Pixmap(ICON_SIZE, ICON_SIZE, Pixmap.Format.RGB565);
+			pixMap.setColor(Color.RED);
+			for (int i = -2; i < 3; ++i) {
+				for (int j = -2; j < 3; ++j) {
+					int x = ICON_SIZE / 2 + EDGE * i;
+					if ((j & 1) == 1)
+						x += EDGE / 2;
+					int y = ICON_SIZE / 2 + EDGE * j;
+					pixMap.drawCircle(x, y, DOT_SIZE);
+				}
+			}
+
 			pixMap.setColor(Color.RED);
 			for (GridPoint2 vec: this) {
 				System.out.println("pnt " + vec.x + ", " + vec.y);
