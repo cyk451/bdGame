@@ -6,8 +6,7 @@ import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer.ShapeType;
 import com.badlogic.gdx.math.*;
 import com.badlogic.gdx.utils.*;
-
-
+import java.util.*;
 
 /* must create left player first */
 public class Player {
@@ -19,7 +18,7 @@ public class Player {
 	Color				mColor;
 	int				mIndex;
 
-	int				mBattleUnitCount;
+	private int			mBattleUnitCount;
 
 	public Player(float x, float y, Player opponent, Color c) {
 		boolean flip = false;
@@ -52,6 +51,13 @@ public class Player {
 		return mGrid.handleUp(pos);
 	}
 
+	public Unit getUnitByOrder(int order) {
+		order -= 1;
+		if (order >= mOrderList.size)
+			return null;
+		return mOrderList.get(order);
+	}
+
 	public void addUnit(Unit u) {
 		updateOrder();
 
@@ -66,6 +72,7 @@ public class Player {
 			mBattleUnitCount += 1;
 
 	}
+
 	private void updateOrder() {
 		Array<Unit> toBeRemoved = new Array<Unit>();
 
@@ -99,14 +106,43 @@ public class Player {
 		System.out.println(toBeRemoved + " back " + toBeRemoved.getOrder());
 	}
 
-	public void rewind() { mIndex = 0; }
+	public class UnitIterator implements Iterator<Unit> {
+		private int mIndex;
+		// private Array<Unit> mList;
+		UnitIterator() {
+			mIndex = 0;
+		}
+
+		@Override
+		public boolean hasNext() {
+			if (mIndex >= mOrderList.size)
+				return false;
+			do {
+				if (!mOrderList.get(mIndex).isDead())
+					return true;
+				mIndex += 1;
+			} while(mIndex < mOrderList.size);
+			return false;
+		}
+
+		@Override
+		public Unit next() {
+			if (!hasNext())
+				return null;
+			return mOrderList.get(mIndex++);
+		}
+	}
+
+	public Iterator<Unit> iterator() {
+		return new UnitIterator();
+	}
 
 	public Unit getNextUnit() {
 		if (mIndex >= mOrderList.size)
 			return null;
-		Unit result;
+		Unit result = null;
 		do {
-			System.out.println(getName() + " popping " + mIndex);
+			// System.out.println(getName() + " popping " + mIndex);
 			result = mOrderList.get(mIndex);
 			mIndex += 1;
 			if (!result.isDead())
@@ -134,6 +170,7 @@ public class Player {
 				inc = -1;
 				match = 1;
 		}
+
 		for (int c = from; c != to; c += inc) {
 			Tile tile = lane.get(c);
 			// System.out.println("getMainTargetTile: " + c + " / " + to + " checking");
@@ -151,6 +188,8 @@ public class Player {
 			// System.out.println("getMainTargetTile: found [" + result.mX + ", " + result.mY + "]");
 		return result;
 	}
+
+	public Grid getGrid() { return mGrid; }
 
 	public Array<Unit> getTargets(Unit main) {
 		Array<Unit> list = new Array<Unit>();
@@ -242,8 +281,10 @@ public class Player {
 
 	// return boolean: deployUnit successful.
 	public boolean deployUnit(Unit toBeDeployed, Tile tile) {
-		if (tile == null)
-			return false;
+		if (tile == null) {
+			toBeDeployed.setTile(null);
+			return true;
+		}
 
 		if (tile.getUnit() == toBeDeployed)
 			return false;
@@ -268,6 +309,24 @@ public class Player {
 		}
 		toBeDeployed.setTile(tile);
 		addUnit(toBeDeployed);
+		return true;
+	}
+
+	public boolean swapOrder(Unit a, Unit b) {
+		if (a == b)
+			return true;
+		if (a == null || a.getOwner() != this || !a.isDeployed())
+			return false;
+		if (b == null || b.getOwner() != this || !b.isDeployed())
+			return false;
+		// int ai = mOrderList.indexOf(a, false);
+		// int bi = mOrderList.indexOf(b, false);
+		int ai = a.getOrder() - 1;
+		int bi = b.getOrder() - 1;
+		mOrderList.set(ai, b);
+		mOrderList.set(bi, a);
+		a.setOrder(bi + 1);
+		b.setOrder(ai + 1);
 		return true;
 	}
 

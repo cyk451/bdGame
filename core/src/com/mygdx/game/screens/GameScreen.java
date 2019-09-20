@@ -49,10 +49,11 @@ public class GameScreen implements Screen {
 	// static variables
 	static public UnitSelectBar	sUnitSelectBar;
 	static public InformationBar	sInfoBar;
+	static public Button		sOrderChangeButton;
+	static public Button		sClearButton;
 	static Player			[]sPlayers;
 	static Array<Unit>		sUnitList;
 	static TopMessage		sTopMessage;
-	static boolean			sChangingOrder = false;
 
 	public GameScreen(final MyGdxGame g) {
 		mGame = g;
@@ -111,7 +112,9 @@ public class GameScreen implements Screen {
 		// private ImageButton pattern;
 
 		InformationBar() {
-			super();
+			super(mGame.getUiSkin());
+
+			setBackground("textfield");
 
 			align(Align.topLeft);
 			// pad(5.0f);
@@ -129,9 +132,12 @@ public class GameScreen implements Screen {
 
 		public void setInformation(Unit u) {
 			mUnitNameLabel.setText("" + u.getType() + " - " + u.getName());
-			mStatusLabel.setText("HP: " + u.getHp()+ " DMG: " + u.getAtk() + " " + u.getRange());
+			mStatusLabel.setText("HP: " + u.getHp()+ " DMG: " +
+					u.getAtk() + " " + u.getRange());
 
-			mRangePattern.setDrawable(new SpriteDrawable(u.getPattern().asSprite()));
+			mRangePattern.setDrawable(
+					new SpriteDrawable(u.getPattern().asSprite())
+					);
 
 			drawAttackArea();
 		}
@@ -144,11 +150,18 @@ public class GameScreen implements Screen {
 
 	public class UnitSelectBar extends Table {
 		private HorizontalGroup	mUnitListGroup;
+		private ButtonGroup mSelected;
 
 		UnitSelectBar() {
-			super();
+			super(mGame.getUiSkin());
+			setBackground("textfield");
 			mUnitListGroup = new HorizontalGroup();
+			mSelected = new ButtonGroup();
+			mSelected.setMaxCheckCount(1);
+			mSelected.setMinCheckCount(0);
+			mSelected.setUncheckLast(true);
 
+			align(Align.topLeft);
 			pad(5.0f);
 
 			Button startButton = new TextButton("Fight", mGame.getUiSkin());
@@ -160,33 +173,64 @@ public class GameScreen implements Screen {
 				}
 			});
 
-			add(startButton);
+			add(startButton).expandY().fillY();
 
-			Button orderButton = new TextButton("Order", mGame.getUiSkin());
-			startButton.addListener(new ClickListener() {
+
+			sOrderChangeButton = new TextButton("Change Order", mGame.getUiSkin(), "toggle");
+			sOrderChangeButton.addListener(new ClickListener() {
 				@Override
 				public void clicked(InputEvent event, float x, float y) {
-					System.out.println("Changing toggled");
-					sChangingOrder = !sChangingOrder;
+					System.out.println("Order Changing toggled");
+				}
+			});
+			mSelected.add(sOrderChangeButton);
+
+			add(sOrderChangeButton).expandY().fillY();
+
+			sClearButton = new TextButton("X", mGame.getUiSkin(), "toggle");
+			sClearButton.addListener(new ClickListener() {
+				@Override
+				public void clicked(InputEvent event, float x, float y) {
+					System.out.println("Clear mode toggled");
+				}
+			});
+			mSelected.add(sClearButton);
+
+			add(sClearButton).expandY().fillY();
+
+
+			Skin skin = mGame.getUiSkin();
+			for (final Unit u : sUnitList)
+				addButton(u.asButton(skin), u);
+			ScrollPane sp = new ScrollPane(mUnitListGroup, mGame.getUiSkin());
+
+			add(sp).left();
+		}
+
+		public void addButton(final Button button, final Unit unit) {
+			button.addListener(new ClickListener(){
+				@Override
+				public void clicked(InputEvent event, float x, float y){
+					if (button.isDisabled())
+						return ;
+					Gdx.app.log("buttonListener", "Click at " + x + "," + y);
+					if (!button.isChecked()) {
+						Unit.sChosenUnit = null;
+					}
+					// if (!u.isDeployed())
+					Unit.sChosenUnit = unit;
+					sInfoBar.setInformation(unit);
+					// uncheck other boxes
 				}
 			});
 
-			add(orderButton);
-
-			for (final Unit u : sUnitList) {
-				mUnitListGroup.addActor(u.asButton());
-			}
-			ScrollPane sp = new ScrollPane(mUnitListGroup, mGame.getUiSkin());
-
-			add(sp);
-		}
-
-		public void addButton(ImageButton button) {
 			mUnitListGroup.addActor(button);
+			mSelected.add(button);
 		}
 
-		public void removeButton(ImageButton button) {
+		public void removeButton(Button button, Unit u) {
 			mUnitListGroup.removeActor(button);
+			mSelected.remove();
 		}
 
 	}
@@ -195,7 +239,7 @@ public class GameScreen implements Screen {
 		mViewport	= new FitViewport(DEFAULT_SCREEN_WIDTH, DEFAULT_SCREEN_HEIGHT, mCamera);
 		mViewport.apply();
 		mStage		= new Stage(mViewport);
-		mRootTable	= new Table();
+		mRootTable	= new Table(mGame.getUiSkin());
 
 		mRootTable.setFillParent(true);
 		mStage.addActor(mRootTable);
@@ -206,20 +250,22 @@ public class GameScreen implements Screen {
 
 		mRootTable.top();
 
-		mRootTable.add(sInfoBar).left().top().expandX().height(Value.percentHeight(100f/480, mRootTable));
+		mRootTable.add(sInfoBar).left().top().expandX().fillX()
+			.height(Value.percentHeight(100f/480, mRootTable));
 		mRootTable.row();
-		mRootTable.add(sTopMessage).pad(5.0f).expandX().height(Value.percentHeight(300f/480, mRootTable));
+		mRootTable.add(sTopMessage).pad(5.0f).expandX()
+			.height(Value.percentHeight(300f/480, mRootTable));
 		mRootTable.row();
-		mRootTable.add(sUnitSelectBar).left().bottom().expand();
+		mRootTable.add(sUnitSelectBar).left().bottom().expand().fill();
 
 		InputMultiplexer multiplexer = new InputMultiplexer();
 		final Vector3 tp = new Vector3();
 		multiplexer.addProcessor(new InputAdapter() {
 			@Override
 			public boolean touchDown(int x, int y, int pointer, int button) {
-				Gdx.app.log("Mouse Event","Click at " + x + "," + y);
+				// Gdx.app.log("Mouse Event","Click at " + x + "," + y);
 				Vector3 np = mViewport.unproject(tp.set(x, y, 0));
-				Gdx.app.log("Mouse Event","Click at " + tp.x + "," + tp.y);
+				// Gdx.app.log("Mouse Event","Click at " + tp.x + "," + tp.y);
 				for (Player player : sPlayers)
 					if (player.handleTouch(np))
 						return true;
@@ -266,7 +312,7 @@ public class GameScreen implements Screen {
 
 		mStage.act(Gdx.graphics.getDeltaTime());
 		mStage.draw();
-		mStage.setDebugAll(true);
+		// mStage.setDebugAll(true);
 	}
 
 	@Override

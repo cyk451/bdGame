@@ -136,6 +136,11 @@ public class Tile extends Polygon {
 		if (!contains(pos.x, pos.y))
 			return false;
 
+		if (GameScreen.sClearButton.isChecked() && mUnit != null) {
+			GameScreen.getControllingPlayer().deployUnit(mUnit, null);
+			return true;
+		}
+
 		Unit temp = Unit.sChosenUnit;
 
 		if (temp == null)
@@ -147,8 +152,14 @@ public class Tile extends Polygon {
 			return true;
 
 		System.out.println("deploying it");
-		boolean handled = GameScreen.getControllingPlayer().deployUnit(temp, this);
-		return handled;
+		boolean handled = false;
+
+		if (GameScreen.sOrderChangeButton.isChecked()) {
+			handled = GameScreen.getControllingPlayer().swapOrder(temp, mUnit);
+		} else {
+			handled = GameScreen.getControllingPlayer().deployUnit(temp, this);
+		}
+		return true;
 	}
 
 	private boolean isClear() { return mUnit == null; }

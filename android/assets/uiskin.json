@@ -12,13 +12,18 @@ com.badlogic.gdx.scenes.scene2d.ui.Skin$TintedDrawable: {
 com.badlogic.gdx.scenes.scene2d.ui.Button$ButtonStyle: {
 	default: { down: default-round-down, up: default-round },
 	toggle: { down: default-round-down, checked: default-round-down, up: default-round }
+	deploy: { down: red-round-large, checked: red-round-large, up: green-round-large }
 },
 com.badlogic.gdx.scenes.scene2d.ui.TextButton$TextButtonStyle: {
 	default: { down: default-round-down, up: default-round, font: default-font, fontColor: white },
 	toggle: { down: default-round-down, up: default-round, checked: default-round-down, font: default-font, fontColor: white, downFontColor: red }
 },
+com.badlogic.gdx.scenes.scene2d.ui.ImageButton$ImageButtonStyle: {
+	default: { down: default-round-down, up: default-round },
+	toggle: { down: default-round-down, up: default-round, checked: default-round-down }
+},
 com.badlogic.gdx.scenes.scene2d.ui.ScrollPane$ScrollPaneStyle: {
-	default: { vScroll: default-scroll, hScrollKnob: default-round-large, background: default-rect, hScroll: default-scroll, vScrollKnob: default-round-large }
+	default: { vScroll: default-scroll, hScrollKnob: default-round-large, background: default-round-large, hScroll: default-scroll, vScrollKnob: default-round-large }
 },
 com.badlogic.gdx.scenes.scene2d.ui.SelectBox$SelectBoxStyle: {
 	default: {

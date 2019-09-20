@@ -33,7 +33,7 @@ class Grid {
 	public Grid(float x, float y, Player p, boolean flip) {
 		placeTiles(x, y, p, flip);
 	}
-	
+
 	public class Lane extends Array<Tile> {
 		Lane() {}
 		Lane(int cap) {

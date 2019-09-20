@@ -25,9 +25,10 @@ public class MainMenuScreen implements Screen {
 	static MyGdxGame mGame;
 	private Stage stage;
 
-	private Table mainTable;
-	private MenuButton startButton;
-	private MenuButton editUnitButton;
+	private Table mMainTable;
+	private MenuButton mStartButton;
+	private MenuButton mEditUnitButton;
+	private VerticalGroup mMenuButtonList;
 
 
 	class MenuButton extends TextButton {
@@ -35,7 +36,7 @@ public class MainMenuScreen implements Screen {
 		MenuButton(String title, Screen s) {
 			super(title, mSkin);
 			screen = s;
-			// setWidth(600);
+			setWidth(600);
 			addListener(new ClickListener(){
 				@Override
 				public void clicked(InputEvent event, float x, float y){
@@ -52,12 +53,6 @@ public class MainMenuScreen implements Screen {
 		instance = this;
 		mGame = game;
 		mSkin = game.getUiSkin();
-	}
-
-	private void addButton(MenuButton btn) {
-		mainTable.add(btn).prefWidth(BUTTON_WIDTH).padBottom(20).align(Align.center);
-
-		mainTable.row();
 	}
 
 	@Override
@@ -82,7 +77,7 @@ public class MainMenuScreen implements Screen {
 
 		Gdx.gl.glClearColor(0, 0, 0.2f, 1);
 		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
-		
+
 		stage.act(Gdx.graphics.getDeltaTime());
 		stage.draw();
 		stage.setDebugAll(true);
@@ -92,10 +87,16 @@ public class MainMenuScreen implements Screen {
 	public void resize(int width, int height) {
 		// super.resize();
 		System.out.println("menu resized (" + width + ", " + height + ")");
-		
-		mainTable.setWidth(width);
-		mainTable.setHeight(height);
+
+		mMainTable.setWidth(width);
+		mMainTable.setHeight(height);
 		stage.getViewport().update(width, height, true);
+	}
+
+	private void addButton(MenuButton btn) {
+		// mMainTable.add(btn).prefWidth(BUTTON_WIDTH).padBottom(20).align(Align.center);
+		mMenuButtonList.addActor(btn);
+		// mMainTable.row();
 	}
 
 	@Override
@@ -104,19 +105,26 @@ public class MainMenuScreen implements Screen {
 		System.out.println("menu showed");
 
 		stage = new Stage(new ScreenViewport());
-		mainTable = new Table();
+		mMainTable = new Table();
+		mMainTable.setFillParent(true);
 
-		mainTable.align(Align.center);
+		HorizontalGroup hGroup = new HorizontalGroup();
+		hGroup.expand().fill();
+		mMenuButtonList = new VerticalGroup();
+		mMenuButtonList.expand().fill();
 
-		startButton = new MenuButton("New Game", new GameScreen(mGame));
-		editUnitButton = new MenuButton("Edit Unit", new Editor(mGame));
+		hGroup.addActor(mMenuButtonList);
+		mMainTable.add(hGroup);
 
-		mainTable.padTop(50);
 
-		addButton(startButton);
-		addButton(editUnitButton);
+		// mMainTable.align(Align.center);
 
-		stage.addActor(mainTable);
+		mMainTable.pad(50);
+
+		addButton(new MenuButton("New Game", new GameScreen(mGame)));
+		addButton(new MenuButton("Edit Unit", new Editor(mGame)));
+
+		stage.addActor(mMainTable);
 		Gdx.input.setInputProcessor(stage);
 	}
 	//...Rest of class omitted for succinctness.

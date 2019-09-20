@@ -198,3 +198,19 @@ white
   orig: 3, 3
   offset: 0, 0
   index: -1
+red-round-large
+  rotate: false
+  xy: 57, 8
+  size: 20, 20
+  split: 2, 2, 2, 2
+  orig: 20, 20
+  offset: 0, 0
+  index: -1
+green-round-large
+  rotate: false
+  xy: 78, 8
+  size: 20, 20
+  split: 2, 2, 2, 2
+  orig: 20, 20
+  offset: 0, 0
+  index: -1

@@ -39,13 +39,14 @@ public class Unit {
 	final private UnitProperties mProps;
 
 	private int gridX, gridY;
-	private int			mOrder;
-	private int			mCurrentHp;
-	private boolean			mPrepared;
-	private Unit			mMainTarget;
-	private Array<Unit>		mAttackingGroup;
-	private Queue<Damage> 		mReceivedDamages;
-	private boolean			mActive;
+	private int				mOrder;
+	private int				mCurrentHp;
+	private boolean				mPrepared;
+	private Unit				mMainTarget;
+	private Array<Unit>			mAttackingGroup;
+	private java.util.Queue<Damage> 	mReceivedDamages;
+	private boolean				mActive;
+	private Player				mTargetingPlayer;
 
 	// free it somehow
 	static private BitmapFont sFont = new BitmapFont();
@@ -57,56 +58,22 @@ public class Unit {
 
 	private Buff[] mBuffs;
 
-	public class DeployButton extends ImageButton {
-		DeployButton() {
-			super(new SpriteDrawable(getIllust()));
-			addListener(new ClickListener(){
-				@Override
-				public void clicked(InputEvent event, float x, float y){
-					Unit u = Unit.this;
-					System.out.println(getName() + " selected...");
-					if (!isDeployed())
-						sChosenUnit = u;
-					GameScreen.sInfoBar.setInformation(u);
-				}
-			});
-		}
-
-		@Override
-		public void draw(Batch batch, float parentAlpha) {
-			super.draw(batch, parentAlpha);
-		}
-	}
-
-	public ImageButton asButton() {
-		return mButton;
-	}
-
 	public Unit(UnitProperties p, Player o) {
 		mOwner = o;
 		mProps = p;
 		mOrder = -1;
 		mPrepared = false; // for static only;
 		mCurrentHp = mProps.hitpoints;
-		mButton = new DeployButton();
+		mTargetingPlayer = mOwner.getOpponent();
+		if (getType() == UnitProperties.Type.INFRA)
+			mTargetingPlayer = mOwner;
+		// mButton = new DeployButton();
 		mReceivedDamages = new LinkedList<Damage>();
 	}
 
 	public void deploy(Grid grid, int x, int y) {
 		gridX = x;
 		gridY = y;
-	}
-
-	public int getX() {
-		if (mTile != null)
-			return mTile.mX;
-		return 0;
-	}
-
-	public int getY() {
-		if (mTile != null)
-			return mTile.mY;
-		return 0;
 	}
 
 	public String getName() { return mProps.name; }
@@ -151,11 +118,13 @@ public class Unit {
 		if (mTile != null) {
 			mTile.setUnit(this);
 			if (mOwner == GameScreen.getControllingPlayer())
-				GameScreen.sUnitSelectBar.removeButton(asButton());
+				// GameScreen.sUnitSelectBar.removeButton(asButton(), this);
+				mButton.setDisabled(true);
 			// mOwner.addUnit(this);
 		} else {
 			if (mOwner == GameScreen.getControllingPlayer())
-				GameScreen.sUnitSelectBar.addButton(asButton());
+				// GameScreen.sUnitSelectBar.addButton(asButton(), this);
+				mButton.setDisabled(false);
 			// mOwner.removeUnit(this);
 		}
 	}
@@ -196,7 +165,7 @@ public class Unit {
 
 
 	private void updateTargets() {
-		int lane = getTile().mY;
+		int lane = getY();
 		mAttackingGroup = mOwner.getOpponent().getTargets(lane, getRange(), getPattern());
 	}
 
@@ -275,4 +244,34 @@ public class Unit {
 	}
 
 	public void setActive(boolean act) { mActive = act; }
+
+	public int getX() { return mTile == null? -1: mTile.mX; }
+	public int getY() { return mTile == null? -1: mTile.mY; }
+
+	public Player getTargetingPlayer() { return mTargetingPlayer; }
+
+	public class DeployButton extends Button {
+		DeployButton(Skin skin) {
+			super(skin, "deploy");
+			Image inner = new Image(new SpriteDrawable(getIllust()));
+			add(inner);
+
+		}
+
+		@Override
+		public void draw(Batch batch, float parentAlpha) {
+			super.draw(batch, parentAlpha);
+		}
+	}
+
+	public Button asButton(Skin skin) {
+		// if (skin != null)
+			// mButton.setStyle(skin.getStyle("toggle", ImageButton.class));
+		mButton = new DeployButton(skin);
+		return mButton;
+	}
+
+	public Button asButton() {
+		return mButton;
+	}
 }

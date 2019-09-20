@@ -37,7 +37,8 @@ public class Engine extends Thread {
 	private Unit		mActiveUnit;
 	int			mRound;
 	// TODO render this queue under bottom tab
-	Queue<Unit>		mUnitQueue;
+	java.util.Queue<Unit>	mUnitQueue;
+
 	private long		mLastTurnTS;
 	private Player		mFirstPlayer;
 	private Status		mStatus;
@@ -96,27 +97,33 @@ public class Engine extends Thread {
 		return result;
 	}
 
-	private Queue<Unit> formGlobalOrderList() {
-		Player activePlayer = mFirstPlayer;
-		Queue<Unit> list = new LinkedList<Unit>();
+	private java.util.Queue<Unit> formGlobalOrderList() {
+		int activePlayerIdx = 0;
 		int finished = 0;
+		java.util.Queue<Unit> list = new LinkedList<Unit>();
+		Iterator<Unit> iters[] = new Player.UnitIterator[2];
 
-		mPlayers[0].rewind();
-		mPlayers[1].rewind();
+		iters[0] = mPlayers[0].iterator();
+		iters[1] = mPlayers[1].iterator();
+		Iterator<Unit> activeIter = iters[activePlayerIdx];
 
-		while (finished < 2) {
-			System.out.println("acting " + activePlayer.getName() + " popping");
-			Unit u = activePlayer.getNextUnit();
-			if (u == null) {
+		do {
+			// System.out.println("acting " + activePlayer.getName() + " popping");
+			// Unit u = activePlayer.getNextUnit();
+			if (!activeIter.hasNext()) {
 				finished += 1;
-				activePlayer = activePlayer.getOpponent();
+				activePlayerIdx = 1 - activePlayerIdx;
+				activeIter = iters[activePlayerIdx];
 				continue;
 			}
-			System.out.println(activePlayer.getName() + " enqueue one unit");
+			Unit u = activeIter.next();
+			// System.out.println(activePlayer.getName() + " enqueue one unit");
 			list.add(u);
-			if (u.switchPlayer())
-				activePlayer = activePlayer.getOpponent();
-		}
+			if (u.switchPlayer()) {
+				activePlayerIdx = 1 - activePlayerIdx;
+				activeIter = iters[activePlayerIdx];
+			}
+		} while (finished < 2);
 		System.out.println("formGlobalOrderList: list size " + list.size());
 		return list;
 	}
