@@ -303,12 +303,6 @@ public class GameScreen implements Screen {
 
 		ShapeRenderer sr = mGame.mShapeRenderer;
 
-		sr.begin(ShapeType.Line);
-		sr.setColor(Color.YELLOW);
-		sr.rect(1, 1, 799, 479);
-		sr.end();
-
-
 		for (Player player : sPlayers) {
 			player.render(mGame);
 		}

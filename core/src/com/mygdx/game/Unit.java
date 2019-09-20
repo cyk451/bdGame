@@ -14,6 +14,7 @@ import com.badlogic.gdx.scenes.scene2d.ui.*;
 import com.badlogic.gdx.scenes.scene2d.utils.*;
 import com.badlogic.gdx.graphics.g2d.*;
 import com.badlogic.gdx.utils.*;
+import com.badlogic.gdx.math.*;
 import com.badlogic.gdx.math.Vector2;
 import java.util.*;
 
@@ -47,6 +48,7 @@ public class Unit {
 	private java.util.Queue<Damage> 	mReceivedDamages;
 	private boolean				mActive;
 	private Player				mTargetingPlayer;
+	private Sprite				mSprite;
 
 	// free it somehow
 	static private BitmapFont sFont = new BitmapFont();
@@ -62,13 +64,20 @@ public class Unit {
 		mOwner = o;
 		mProps = p;
 		mOrder = -1;
-		mPrepared = false; // for static only;
+		mPrepared = false; // for tastics only;
 		mCurrentHp = mProps.hitpoints;
+		mReceivedDamages = new LinkedList<Damage>();
+		mAttackingGroup = new Array<Unit>();
+
+		mSprite = new Sprite(mProps.illustration);
+		if (mOwner.getFlip())
+			mSprite.setFlip(true /* x-axis */,
+					false /* y-axis */);
+
 		mTargetingPlayer = mOwner.getOpponent();
 		if (getType() == UnitProperties.Type.INFRA)
 			mTargetingPlayer = mOwner;
 		// mButton = new DeployButton();
-		mReceivedDamages = new LinkedList<Damage>();
 	}
 
 	public void deploy(Grid grid, int x, int y) {
@@ -94,7 +103,7 @@ public class Unit {
 
 	public int getAtk() { return mProps.damage; }
 
-	public Sprite getIllust() { return mProps.illustSprite; }
+	public Sprite getIllust() { return mSprite; }
 
 	public UnitProperties.Range getRange() { return mProps.range; }
 	public UnitProperties.Type getType() { return mProps.type; }
@@ -126,6 +135,10 @@ public class Unit {
 
 	}
 
+	public UnitProperties.TargetSelector getTargetSelector() {
+		return mProps.selector;
+	}
+
 	public int getOrder() { return mOrder; }
 	public void setOrder(int o) { mOrder = o; }
 
@@ -141,7 +154,7 @@ public class Unit {
 			case TROOP:
 			case TURRET:
 				return true;
-			case STATIC:
+			case TASTICS:
 				return mPrepared;
 			case INFRA:
 				return false;
@@ -157,13 +170,25 @@ public class Unit {
 	}
 
 	private void engage(Unit target) {
+		if (target.isDead())
+			return ;
 		target.dealDamage(new Damage(getAtk()));
 	}
 
 
 	private void updateTargets() {
-		int lane = getY();
-		mAttackingGroup = mOwner.getOpponent().getTargets(lane, getRange(), getPattern());
+		Unit main = getTargetSelector().findTarget(this);
+		mAttackingGroup.clear();
+		// mAttackingGroup.add(main);
+
+		int x = main.getX(), y = main.getY();
+		Grid grid = main.getOwner().getGrid();
+		for (GridPoint2 offset: main.getPattern()) {
+			Tile t = grid.getTile(x + offset.x, y + offset.y);
+			Gdx.app.log("Unit", "target " + (x + offset.x) + ", " + (y + offset.y));
+			if (t != null && t.getUnit() != null)
+				mAttackingGroup.add(t.getUnit());
+		}
 	}
 
 	public void runTurn() {
@@ -171,14 +196,12 @@ public class Unit {
 		// notifyTargetSelcted
 
 		// mAttackingGroup;
-		System.out.println("runTurn: " + getName() + " has " + mAttackingGroup.size + "' targets");
+		Gdx.app.log("Unit", "runTurn: " + getName()  + " of "
+				+ mOwner.getName() + " has "
+				+ mAttackingGroup.size + "' targets");
 
 		for (Unit t: mAttackingGroup) {
-			// notifyBeforeAttack
 			engage(t);
-			// if (t.isDead())
-				// mUnitQueue.remove(t);
-			// notifyAfterAttack
 		}
 		// end turn
 		// for (ab: mProps.abilities) { ab.do }
@@ -191,6 +214,9 @@ public class Unit {
 		game.mBatch.begin();
 		game.mBatch.draw(sprite, spot.x, spot.y);
 		game.mBatch.end();
+
+		if (isDead())
+			return ;
 
 		drawHpBar(spot.x, spot.y, game);
 
@@ -219,6 +245,14 @@ public class Unit {
 		y -= (side - sFont.getXHeight()) / 2;
 		sFont.draw(game.mBatch, "" + getOrder(),
 				x, y,
+				side, //width
+				Align.center,
+				false // wrap
+				);
+
+		String debug = "(" + getX() + ", " + getY() + ")";
+		sFont.draw(game.mBatch, debug,
+				x, y - 4,
 				side, //width
 				Align.center,
 				false // wrap

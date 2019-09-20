@@ -27,6 +27,7 @@ public class UnitProperties {
 	static public Array<UnitProperties> sUnitSet = new Array<UnitProperties>();
 	static private EnumMap<Type, Color> sUnitMap;
 	static private EnumMap<Range, TargetSelector> sTargetSelectorMap;
+	static public Sprite sDebrickSprite;
 	static {
 		sTargetSelectorMap = new EnumMap(Range.class);
 		sTargetSelectorMap.put(Range.FIRST, new First());
@@ -34,13 +35,14 @@ public class UnitProperties {
 		sTargetSelectorMap.put(Range.LAST, new Last());
 		sTargetSelectorMap.put(Range.SELF, new Self());
 		sTargetSelectorMap.put(Range.NEXT, new Next());
+
+		Texture spriteText = new Texture(Gdx.files.internal("debrick.png"));
+		sDebrickSprite = new Sprite(spriteText);
 	}
 
-	public enum Range { FIRST, SKIP, LAST, SELF, NEXT};
-	public enum Type { TROOP, INFRA, STATIC, TURRET };
+	public enum Range { FIRST, SKIP, LAST, SELF, NEXT };
+	public enum Type { TROOP, INFRA, TASTICS, TURRET };
 
-
-	static public Sprite sDebrickSprite = loadDebrickSprite();
 	public String name;
 	public String flavorText;
 
@@ -53,8 +55,7 @@ public class UnitProperties {
 	public Range		range;
 	public Type		type;
 	public TargetSelector	selector;
-
-	public Sprite illustSprite;
+	public Texture		illustration;
 
 	static public abstract class TargetSelector {
 		public Texture mIcon;
@@ -79,7 +80,6 @@ public class UnitProperties {
 			}
 			return null;
 		}
-		abstract public TargetSelector build();
 	}
 
 	static public class First extends TargetSelector {
@@ -92,10 +92,6 @@ public class UnitProperties {
 				return unit;
 			}
 			return null;
-		}
-		@Override
-		public TargetSelector build() {
-			return new First();
 		}
 	}
 
@@ -114,10 +110,6 @@ public class UnitProperties {
 			}
 			return result;
 		}
-		@Override
-		public TargetSelector build() {
-			return new Skip();
-		}
 	}
 
 	static public class Last extends TargetSelector {
@@ -130,10 +122,6 @@ public class UnitProperties {
 			}
 			return null;
 		}
-		@Override
-		public TargetSelector build() {
-			return new Last();
-		}
 	}
 
 
@@ -143,10 +131,6 @@ public class UnitProperties {
 		public Unit findTarget(Unit u) { return u; }
 		@Override
 		public Unit findInLane(Grid.Lane lane) { return null; }
-		@Override
-		public TargetSelector build() {
-			return new Self();
-		}
 	}
 
 	static public class Next extends TargetSelector {
@@ -172,10 +156,6 @@ public class UnitProperties {
 		}
 		@Override
 		public Unit findInLane(Grid.Lane lane) { return null; }
-		@Override
-		public TargetSelector build() {
-			return new Last();
-		}
 	}
 
 	static public class Pattern extends Array<GridPoint2> {
@@ -227,11 +207,6 @@ public class UnitProperties {
 		}
 	}
 
-	static public Sprite loadDebrickSprite() {
-		Texture texture = new Texture(Gdx.files.internal("debrick.png"));
-		return new Sprite(texture);
-	}
-
 	/* constructors */
 	public UnitProperties() { }
 	public UnitProperties(JsonValue json) {
@@ -242,10 +217,9 @@ public class UnitProperties {
 		hitpoints = json.getInt("hitpoints");
 		range = Range.valueOf(json.getString("range").toUpperCase());
 		Gdx.app.log("UnitProperties", "range: " + range);
-		// selector = sTargetSelectorMap.get(range);
+		selector = sTargetSelectorMap.get(range);
 		type = Type.valueOf(json.getString("type").toUpperCase());
-		Texture texture = new Texture(Gdx.files.internal(json.getString("illust_texture")));
-		illustSprite = new Sprite(texture);
+		illustration = new Texture(Gdx.files.internal(json.getString("illust_texture")));
 
 		id = sUnitSet.size;
 

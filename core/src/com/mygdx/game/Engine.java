@@ -1,7 +1,8 @@
 package com.mygdx.game;
 
-import java.util.*;
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.utils.*;
+import java.util.*;
 // import com.badlogic.gdx.utils;
 //
 // Terms:
@@ -14,7 +15,7 @@ import com.badlogic.gdx.utils.*;
 // loop (update)
 //
 public class Engine extends Thread {
-	final static public int	INTERVAL_MS = 1000;
+	final static public int	INTERVAL_MS = 3000;
 	enum Status {
 		WAITING,
 		RUNNING,
@@ -64,19 +65,21 @@ public class Engine extends Thread {
 		mListener.onRound(mRound);
 		beforeBattle();
 
-		while (mStatus == Status.RUNNING) {
+		do {
+			Gdx.app.log("Engine", "tick()");
 			tick();
 			try {
 				sleep(INTERVAL_MS);
 			} catch(InterruptedException ex) {
 				System.out.println("Game thread sleep interrupted");
 			}
-		}
+		} while (mStatus == Status.RUNNING);
 		if (mPlayers[0].isLose())
 			mListener.onLose();
 		else
 			mListener.onWin();
 		System.out.println("battle thread ended");
+
 
 	}
 
@@ -154,14 +157,6 @@ public class Engine extends Thread {
 		if (mStatus != Status.RUNNING)
 			return ;
 
-		/*
-		long time = TimeUtils.nanoTime();
-		if ((time - mLastTurnTS) < 1 * 1000 * 1000 * 1000) {
-			return ;
-		}
-		*/
-		// update();
-
 		if (mActiveUnit != null)
 			mActiveUnit.setActive(false);
 
@@ -176,8 +171,6 @@ public class Engine extends Thread {
 		// System.out.println("tick: " + time + ": " + u.getOwner().getName() + u.getName() + " acting.");
 
 		mActiveUnit.runTurn();
-
-		// mLastTurnTS = time;
 
 		if (isGameEnd()) {
 			System.out.println("Player '" + mWinner.getName() + "' wins");
