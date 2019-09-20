@@ -198,7 +198,7 @@ white
   orig: 3, 3
   offset: 0, 0
   index: -1
-red-round-large
+active-round-large
   rotate: false
   xy: 57, 8
   size: 20, 20
@@ -209,6 +209,14 @@ red-round-large
 green-round-large
   rotate: false
   xy: 78, 8
+  size: 20, 20
+  split: 2, 2, 2, 2
+  orig: 20, 20
+  offset: 0, 0
+  index: -1
+disabled-round-large
+  rotate: false
+  xy: 99, 8
   size: 20, 20
   split: 2, 2, 2, 2
   orig: 20, 20

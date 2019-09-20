@@ -12,7 +12,7 @@ com.badlogic.gdx.scenes.scene2d.ui.Skin$TintedDrawable: {
 com.badlogic.gdx.scenes.scene2d.ui.Button$ButtonStyle: {
 	default: { down: default-round-down, up: default-round },
 	toggle: { down: default-round-down, checked: default-round-down, up: default-round }
-	deploy: { down: red-round-large, checked: red-round-large, up: green-round-large }
+	deploy: { down: active-round-large, checked: active-round-large, up: green-round-large, disabled: disabled-round-large }
 },
 com.badlogic.gdx.scenes.scene2d.ui.TextButton$TextButtonStyle: {
 	default: { down: default-round-down, up: default-round, font: default-font, fontColor: white },

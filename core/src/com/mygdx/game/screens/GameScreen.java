@@ -63,7 +63,8 @@ public class GameScreen implements Screen {
 		sTopMessage.showMessage(what, lastMs);
 	}
 
-	public class TopMessage extends Table implements Engine.EventListener {
+	public class TopMessage extends Table
+			implements Engine.EventListener {
 		Label mMessageLabel;
 		TopMessage() {
 			super();
@@ -77,18 +78,17 @@ public class GameScreen implements Screen {
 			// mStage.addActor(this);
 		}
 
-		void showMessage(String what, int lastMs) {
+		void showMessage(String what, int timeoutMs) {
 			mMessageLabel.setText(what);
-			if (lastMs <= 0) // no timeout
+			if (timeoutMs <= 0) // no timeout
 				return ;
 			java.util.Timer t = new java.util.Timer();
-			java.util.TimerTask resetTask = new java.util.TimerTask() {
+			t.schedule(new java.util.TimerTask() {
 				@Override
 				public void run() {
 					mMessageLabel.setText("");
 				}
-			};
-			t.schedule(resetTask, lastMs);
+			}, timeoutMs);
 		}
 
 		// Engine event implementations
@@ -127,11 +127,16 @@ public class GameScreen implements Screen {
 			add(mStatusLabel).left();
 			row();
 			add(mRangePattern).left();
+			setVisible(false);
 
 		}
 
 		public void setInformation(Unit u) {
-			mUnitNameLabel.setText("" + u.getType() + " - " + u.getName());
+			setVisible(u != null);
+			if (u == null)
+				return;
+			mUnitNameLabel.setText("" + u.getType()
+					+ " - " + u.getName());
 			mStatusLabel.setText("HP: " + u.getHp()+ " DMG: " +
 					u.getAtk() + " " + u.getRange());
 

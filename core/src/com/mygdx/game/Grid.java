@@ -30,8 +30,8 @@ class Grid {
 	// debug onlye
 	static Circle circle = new Circle(0, 0, 3);
 
-	public Grid(float x, float y, Player p, boolean flip) {
-		placeTiles(x, y, p, flip);
+	public Grid(float x, float y, Player p) {
+		placeTiles(x, y, p, p.getFlip());
 	}
 
 	public class Lane extends Array<Tile> {
@@ -80,13 +80,9 @@ class Grid {
 
 	public void render(MyGdxGame game) {
 		ShapeRenderer sr = game.mShapeRenderer;
-		for (Iterator<Lane> liter = mLanes.iterator(); liter.hasNext();) {
-			Array<Tile> lane = liter.next();
-			for (Iterator<Tile> titer = lane.iterator(); titer.hasNext(); ) {
-				Tile tile = titer.next();
+		for (Lane lane: mLanes)
+			for (Tile tile: lane)
 				tile.render(game);
-			}
-		}
 
 		sr.begin(ShapeType.Line);
 		sr.setColor(Color.GREEN);
@@ -130,37 +126,26 @@ class Grid {
 		if (!contains(pos))
 			return false;
 		// System.out.println("grid is pressed...");
+
 		// debugging draws
 		circle.setX(pos.x);
 		circle.setY(pos.y);
 
-		for (Iterator<Lane> liter = mLanes.iterator(); liter.hasNext();) {
-			Array<Tile> lane = liter.next();
-			for (Iterator<Tile> titer = lane.iterator(); titer.hasNext(); ) {
-				Tile tile = titer.next();
+		for (Lane lane: mLanes)
+			for (Tile tile: lane)
 				if (tile.handleTouch(pos))
 					return true;
-			}
-		}
 		return false;
 	}
 
 	public boolean handleUp(Vector3 pos) {
 		if (!contains(pos))
 			return false;
-		for (Iterator<Lane> liter = mLanes.iterator(); liter.hasNext();) {
-			Array<Tile> lane = liter.next();
-			for (Iterator<Tile> titer = lane.iterator(); titer.hasNext(); ) {
-				Tile tile = titer.next();
+
+		for (Lane lane: mLanes)
+			for (Tile tile: lane)
 				if (tile.handleUp(pos))
 					return true;
-			}
-		}
 		return false;
 	}
-	/*
-	public Vector2 getUnitImageBase(int x, int y) {
-		return get(x)get(y);
-	}
-	*/
 }

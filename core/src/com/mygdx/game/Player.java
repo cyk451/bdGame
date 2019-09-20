@@ -17,11 +17,12 @@ public class Player {
 	Array<Unit>			mOrderList;
 	Color				mColor;
 	int				mIndex;
+	boolean				mFlip;
 
 	private int			mBattleUnitCount;
 
 	public Player(float x, float y, Player opponent, Color c) {
-		boolean flip = false;
+		mFlip = false;
 		mColor = c;
 		// we are the bad guys!
 		if (opponent != null) {
@@ -29,10 +30,10 @@ public class Player {
 			// c = Color.RED;
 			opponent.mOpponent = this;
 			mOpponent = opponent;
-			flip = true;
+			mFlip = true;
 		}
 
-		mGrid = new Grid(x, y, this, flip);
+		mGrid = new Grid(x, y, this);
 		mOrderList = new Array<Unit>();
 	}
 
@@ -329,5 +330,7 @@ public class Player {
 		b.setOrder(ai + 1);
 		return true;
 	}
+
+	public boolean getFlip() { return mFlip; }
 
 }

@@ -118,15 +118,12 @@ public class Unit {
 		if (mTile != null) {
 			mTile.setUnit(this);
 			if (mOwner == GameScreen.getControllingPlayer())
-				// GameScreen.sUnitSelectBar.removeButton(asButton(), this);
 				mButton.setDisabled(true);
-			// mOwner.addUnit(this);
 		} else {
 			if (mOwner == GameScreen.getControllingPlayer())
-				// GameScreen.sUnitSelectBar.addButton(asButton(), this);
 				mButton.setDisabled(false);
-			// mOwner.removeUnit(this);
 		}
+
 	}
 
 	public int getOrder() { return mOrder; }
