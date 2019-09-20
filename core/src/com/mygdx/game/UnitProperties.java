@@ -24,6 +24,7 @@ import java.util.*;
 public class UnitProperties {
 	// static Texture testTexture = new Texture(Gdx.files.internal("bucket.png"));
 
+	static final String TAG = "UnitProperties";
 	static public Array<UnitProperties> sUnitSet = new Array<UnitProperties>();
 	static private EnumMap<Type, Color> sUnitMap;
 	static private EnumMap<Range, TargetSelector> sTargetSelectorMap;
@@ -124,7 +125,6 @@ public class UnitProperties {
 		}
 	}
 
-
 	static public class Self extends TargetSelector {
 
 		@Override
@@ -158,6 +158,8 @@ public class UnitProperties {
 		public Unit findInLane(Grid.Lane lane) { return null; }
 	}
 
+	/** Pattern describes neighbor tiles a unit's damage can affect.
+	 */
 	static public class Pattern extends Array<GridPoint2> {
 		final static int DOT_SIZE = 3;
 		final static int EDGE = 8;
@@ -183,7 +185,7 @@ public class UnitProperties {
 
 			pixMap.setColor(Color.RED);
 			for (GridPoint2 vec: this) {
-				System.out.println("pnt " + vec.x + ", " + vec.y);
+				Gdx.app.log("Pattern", "pnt " + vec.x + ", " + vec.y);
 				int x = ICON_SIZE / 2 + EDGE * vec.x;
 				if ((vec.y & 1) == 1)
 					x += EDGE / 2;
@@ -198,6 +200,7 @@ public class UnitProperties {
 	}
 
 	class PatternVertexComparator implements Comparator<GridPoint2> {
+		// this ensures the order of damage applied
 		@Override
 		public int compare(GridPoint2 l, GridPoint2 r) {
 			if (l.y == r.y) {
@@ -210,13 +213,11 @@ public class UnitProperties {
 	/* constructors */
 	public UnitProperties() { }
 	public UnitProperties(JsonValue json) {
-		Gdx.app.log("UnitProperties", "begin ");
 		name = json.getString("name");
 		flavorText = json.getString("flavorText");
 		damage = json.getInt("damage");
 		hitpoints = json.getInt("hitpoints");
 		range = Range.valueOf(json.getString("range").toUpperCase());
-		Gdx.app.log("UnitProperties", "range: " + range);
 		selector = sTargetSelectorMap.get(range);
 		type = Type.valueOf(json.getString("type").toUpperCase());
 		illustration = new Texture(Gdx.files.internal(json.getString("illust_texture")));

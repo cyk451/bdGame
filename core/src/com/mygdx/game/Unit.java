@@ -250,6 +250,7 @@ public class Unit {
 				false // wrap
 				);
 
+		/*
 		String debug = "(" + getX() + ", " + getY() + ")";
 		sFont.draw(game.mBatch, debug,
 				x, y - 4,
@@ -257,6 +258,7 @@ public class Unit {
 				Align.center,
 				false // wrap
 				);
+				*/
 		game.mBatch.end();
 	}
 

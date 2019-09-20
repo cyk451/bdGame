@@ -59,15 +59,14 @@ public class MyGdxGame extends Game{
 		JsonValue jsonRoot = new JsonReader().parse(text);
 		mUnitPropList = new Array<UnitProperties>();
 		for (JsonValue unitJson : jsonRoot.iterator()) {
-			Gdx.app.log("loadResources", "loading " + unitJson);
+			// Gdx.app.log("loadResources", "loading " + unitJson);
 			UnitProperties up = new UnitProperties(unitJson);
 			mUnitPropList.add(up);
-			Gdx.app.log("loadResources", "name: " + up.getName());
+			// Gdx.app.log("loadResources", "name: " + up.getName());
 			sNamedPropMap.put(up.getName(), up);
 		}
 
 		text = Gdx.files.internal("test-formation.json").readString();
-
 		jsonRoot = new JsonReader().parse(text);
 		mFormation = Player.parseFormation(jsonRoot);
 	}
