@@ -162,8 +162,8 @@ public class UnitProperties {
 	 */
 	static public class Pattern extends Array<GridPoint2> {
 		final static int DOT_SIZE = 3;
-		final static int EDGE = 8;
-		final static int ICON_SIZE = 48;
+		final static int EDGE = 7;
+		// final static int ICON_SIZE = 48;
 		Sprite mSprite;
 		Pattern() {
 			super();
@@ -171,25 +171,35 @@ public class UnitProperties {
 		public Sprite asSprite() {
 			if (mSprite != null)
 				return mSprite;
-			Pixmap pixMap = new Pixmap(ICON_SIZE, ICON_SIZE, Pixmap.Format.RGB565);
-			pixMap.setColor(Color.RED);
-			for (int i = -2; i < 3; ++i) {
-				for (int j = -2; j < 3; ++j) {
-					int x = ICON_SIZE / 2 + EDGE * i;
-					if ((j & 1) == 1)
-						x += EDGE / 2;
-					int y = ICON_SIZE / 2 + EDGE * j;
-					pixMap.drawCircle(x, y, DOT_SIZE);
+
+
+			Pixmap pixMap = new Pixmap(Gdx.files.internal("pattern-base.png"));
+			GridPoint2 center = new GridPoint2(
+					pixMap.getWidth() / 2 - 1,
+					pixMap.getHeight() / 2 - 1
+					);
+			pixMap.setColor(new Color(0x3399ff));
+			for (int j = -2; j < 3; ++j) {
+				int x = center.x;
+				int y = center.y + EDGE * j;
+				int max = 3;
+				if ((j & 1) == 1) {
+					max -= 1;
+					x += EDGE / 2;
+				}
+				for (int i = -2; i < max; ++i) {
+					pixMap.fillCircle(x + EDGE * i, y, DOT_SIZE - 1);
 				}
 			}
 
-			pixMap.setColor(Color.RED);
+			pixMap.setColor(new Color(0x99ffff));
+			// pixMap.setColor(Color.RED);
 			for (GridPoint2 vec: this) {
 				Gdx.app.log("Pattern", "pnt " + vec.x + ", " + vec.y);
-				int x = ICON_SIZE / 2 + EDGE * vec.x;
+				int x = center.x + EDGE * vec.x;
 				if ((vec.y & 1) == 1)
 					x += EDGE / 2;
-				int y = ICON_SIZE / 2 + EDGE * vec.y;
+				int y = center.y + EDGE * vec.y;
 				pixMap.fillCircle(x, y, DOT_SIZE);
 			}
 

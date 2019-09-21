@@ -1,6 +1,7 @@
 package com.mygdx.game;
 
 // import com.mygdx.game.screen.GameScreen;
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer.ShapeType;
@@ -231,7 +232,7 @@ public class Player {
 		return new Formation(root);
 	}
 	public boolean isLose() {
-		System.out.println(getName() + " has " + mBattleUnitCount);
+		Gdx.app.log("Player", getName() + " has " + mBattleUnitCount);
 		return mBattleUnitCount == 0;
 	}
 

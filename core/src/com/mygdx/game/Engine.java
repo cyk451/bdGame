@@ -74,13 +74,7 @@ public class Engine extends Thread {
 				System.out.println("Game thread sleep interrupted");
 			}
 		} while (mStatus == Status.RUNNING);
-		if (mPlayers[0].isLose())
-			mListener.onLose();
-		else
-			mListener.onWin();
 		System.out.println("battle thread ended");
-
-
 	}
 
 	private Array<Unit> searchTargets(Unit u) {
@@ -154,6 +148,15 @@ public class Engine extends Thread {
 	}
 
 	public void tick(/*float delta*/) {
+		if (isGameEnd()) {
+			System.out.println("Player '" + mWinner.getName() + "' wins");
+			if (mWinner == mPlayers[0])
+				mListener.onWin();
+			else
+				mListener.onLose();
+			mStatus = Status.FINISHED;
+		}
+
 		if (mStatus != Status.RUNNING)
 			return ;
 
@@ -171,12 +174,6 @@ public class Engine extends Thread {
 		// System.out.println("tick: " + time + ": " + u.getOwner().getName() + u.getName() + " acting.");
 
 		mActiveUnit.runTurn();
-
-		if (isGameEnd()) {
-			System.out.println("Player '" + mWinner.getName() + "' wins");
-
-			mStatus = Status.FINISHED;
-		}
 	}
 
 	private void endRound() {

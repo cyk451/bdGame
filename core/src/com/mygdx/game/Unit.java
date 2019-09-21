@@ -180,14 +180,17 @@ public class Unit {
 		Unit main = getTargetSelector().findTarget(this);
 		mAttackingGroup.clear();
 		// mAttackingGroup.add(main);
+		if (main == null)
+			return ;
 
 		int x = main.getX(), y = main.getY();
 		Grid grid = main.getOwner().getGrid();
 		for (GridPoint2 offset: main.getPattern()) {
 			Tile t = grid.getTile(x + offset.x, y + offset.y);
-			Gdx.app.log("Unit", "target " + (x + offset.x) + ", " + (y + offset.y));
-			if (t != null && t.getUnit() != null)
+			if (t != null && t.getUnit() != null) {
+				Gdx.app.log("Unit", "target " + (x + offset.x) + ", " + (y + offset.y));
 				mAttackingGroup.add(t.getUnit());
+			}
 		}
 	}
 
@@ -250,7 +253,6 @@ public class Unit {
 				false // wrap
 				);
 
-		/*
 		String debug = "(" + getX() + ", " + getY() + ")";
 		sFont.draw(game.mBatch, debug,
 				x, y - 4,
@@ -258,7 +260,6 @@ public class Unit {
 				Align.center,
 				false // wrap
 				);
-				*/
 		game.mBatch.end();
 	}
 

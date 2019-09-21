@@ -117,6 +117,7 @@ public class GameScreen implements Screen {
 			setBackground("textfield");
 
 			align(Align.topLeft);
+			pad(10.0f);
 			// pad(5.0f);
 
 			mUnitNameLabel = new Label("", mGame.getUiSkin());
@@ -167,7 +168,7 @@ public class GameScreen implements Screen {
 			mSelected.setUncheckLast(true);
 
 			align(Align.topLeft);
-			pad(5.0f);
+			pad(10.0f);
 
 			Button startButton = new TextButton("Fight", mGame.getUiSkin());
 			startButton.addListener(new ClickListener() {
@@ -175,33 +176,23 @@ public class GameScreen implements Screen {
 				public void clicked(InputEvent event, float x, float y) {
 					System.out.println("Fight starts");
 					mEngine.start();
+					sUnitSelectBar.setVisible(false);
+					sInfoBar.setVisible(false);
 				}
 			});
 
-			add(startButton).expandY().fillY();
+			add(startButton).height(52f);
 
 
-			sOrderChangeButton = new TextButton("Change Order", mGame.getUiSkin(), "toggle");
-			sOrderChangeButton.addListener(new ClickListener() {
-				@Override
-				public void clicked(InputEvent event, float x, float y) {
-					System.out.println("Order Changing toggled");
-				}
-			});
+			sOrderChangeButton = new TextButton("Order", mGame.getUiSkin(), "toggle");
 			mSelected.add(sOrderChangeButton);
 
-			add(sOrderChangeButton).expandY().fillY();
+			add(sOrderChangeButton).height(52f);
 
 			sClearButton = new TextButton("X", mGame.getUiSkin(), "toggle");
-			sClearButton.addListener(new ClickListener() {
-				@Override
-				public void clicked(InputEvent event, float x, float y) {
-					System.out.println("Clear mode toggled");
-				}
-			});
 			mSelected.add(sClearButton);
 
-			add(sClearButton).expandY().fillY();
+			add(sClearButton).height(52f);
 
 
 			Skin skin = mGame.getUiSkin();
@@ -256,10 +247,10 @@ public class GameScreen implements Screen {
 		mRootTable.top();
 
 		mRootTable.add(sInfoBar).left().top().expandX().fillX()
-			.height(Value.percentHeight(100f/480, mRootTable));
+			.height(Value.percentHeight(120f/480, mRootTable));
 		mRootTable.row();
 		mRootTable.add(sTopMessage).pad(5.0f).expandX()
-			.height(Value.percentHeight(300f/480, mRootTable));
+			.height(Value.percentHeight(260f/480, mRootTable));
 		mRootTable.row();
 		mRootTable.add(sUnitSelectBar).left().bottom().expand().fill();
 
