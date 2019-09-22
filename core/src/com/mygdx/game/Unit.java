@@ -16,6 +16,7 @@ import com.badlogic.gdx.graphics.g2d.*;
 import com.badlogic.gdx.utils.*;
 import com.badlogic.gdx.math.*;
 import com.badlogic.gdx.math.Vector2;
+import com.mygdx.game.abilities.*;
 import java.util.*;
 
 public class Unit {
@@ -26,13 +27,17 @@ public class Unit {
 	// public boolean deployed = false;
 	/* cordinates relative to major */
 
-	class Damage {
+	public class Damage {
 
 		private int mAtkPoints;
+		// for display
 		private int mDamageDealt;
 
-		Damage(int atk) {
+		public Damage(int atk) {
 			mAtkPoints = atk;
+		}
+		public Unit getSource() {
+			return Unit.this;
 		}
 	}
 
@@ -49,6 +54,7 @@ public class Unit {
 	private boolean				mActive;
 	private Player				mTargetingPlayer;
 	private Sprite				mSprite;
+	private Array<Ability>			mAbilities;
 
 	// free it somehow
 	static private BitmapFont sFont = new BitmapFont();
@@ -78,6 +84,12 @@ public class Unit {
 		if (getType() == UnitProperties.Type.INFRA)
 			mTargetingPlayer = mOwner;
 		// mButton = new DeployButton();
+		mAbilities = new Array<Ability>();
+		for (Ability.Props ap: mProps.abilities) {
+			if (ap == null)
+				continue;
+			mAbilities.add(ap.instance());
+		}
 	}
 
 	public void deploy(Grid grid, int x, int y) {
@@ -97,8 +109,9 @@ public class Unit {
 
 		mCurrentHp = hp;
 
-		if (hp == 0)
+		if (hp == 0) {
 			getOwner().notifyUnitLost(this);
+		}
 	}
 
 	public int getAtk() { return mProps.damage; }
@@ -162,19 +175,31 @@ public class Unit {
 		return true;
 	}
 
-	private void dealDamage(Damage dmg) {
+	public void dealDamage(Damage dmg) {
 		int hp = getHp();
 		hp -= dmg.mAtkPoints;
 		setHp(hp);
 		mReceivedDamages.add(dmg); // for UI
+		if (isDead()) {
+			uponKilling(dmg.getSource());
+			uponDeath(dmg.getSource());
+		}
 	}
 
 	private void engage(Unit target) {
 		if (target.isDead())
 			return ;
+
+		target.beforeAttacked(this);
 		target.dealDamage(new Damage(getAtk()));
+		Gdx.app.log("Unit", "caster: " + getOwner().getName() + " - " + getName());
+		Gdx.app.log("Unit", "target: " + target.getOwner().getName() + " - " + target.getName());
+		// afterAttacking(target);
 	}
 
+	public Damage buildDamage(int val) {
+		return new Damage(val);
+	}
 
 	private void updateTargets() {
 		Unit main = getTargetSelector().findTarget(this);
@@ -197,6 +222,7 @@ public class Unit {
 	public void runTurn() {
 		updateTargets();
 		// notifyTargetSelcted
+		// targetSelected();
 
 		// mAttackingGroup;
 		Gdx.app.log("Unit", "runTurn: " + getName()  + " of "
@@ -204,13 +230,22 @@ public class Unit {
 				+ mAttackingGroup.size + "' targets");
 
 		for (Unit t: mAttackingGroup) {
+			beforeAttacking(t);
+		}
+		for (Unit t: mAttackingGroup) {
 			engage(t);
+		}
+		for (Unit t: mAttackingGroup) {
+			afterAttacking(t);
 		}
 		// end turn
 		// for (ab: mProps.abilities) { ab.do }
 	}
 
-	public void render(Vector2 spot, MyGdxGame game) {
+	public void render(MyGdxGame game) {
+		if (mTile == null)
+			return;
+		Vector2 spot = mTile.getRenderSpot();
 		// just render here.
 		Sprite sprite = isDead()? UnitProperties.sDebrickSprite: getIllust();
 
@@ -285,16 +320,27 @@ public class Unit {
 	public Player getTargetingPlayer() { return mTargetingPlayer; }
 
 	public class DeployButton extends Button {
+		Image mInner;
 		DeployButton(Skin skin) {
 			super(skin, "deploy");
-			Image inner = new Image(new SpriteDrawable(getIllust()));
-			add(inner);
+			mInner = new Image(new SpriteDrawable(getIllust()));
+			add(mInner);
 
 		}
 
 		@Override
 		public void draw(Batch batch, float parentAlpha) {
 			super.draw(batch, parentAlpha);
+		}
+
+		@Override
+		public void setDisabled(boolean disabled) {
+			super.setDisabled(disabled);
+			if (disabled) {
+				mInner.setColor(Color.GRAY);
+			} else {
+				mInner.setColor(Color.WHITE);
+			}
 		}
 	}
 
@@ -307,5 +353,35 @@ public class Unit {
 
 	public Button asButton() {
 		return mButton;
+	}
+
+	public void applyAbility(Unit from, Unit to, Ability.EventType t) {
+		for (Ability ab: mAbilities)
+			if (ab.getType() == t)
+				ab.apply(from, to);
+	}
+
+	public void beforeAttacked(Unit from) {
+		applyAbility(from, this, Ability.EventType.BEFORE_ATTACKED);
+	}
+
+	public void afterAttacked(Unit from) {
+		applyAbility(from, this, Ability.EventType.AFTER_ATTACKED);
+	}
+
+	public void beforeAttacking(Unit target) {
+		applyAbility(this, target, Ability.EventType.BEFORE_ATTACKING);
+	}
+
+	public void afterAttacking(Unit target) {
+		applyAbility(this, target, Ability.EventType.AFTER_ATTACKING);
+	}
+
+	public void uponDeath(Unit killer) {
+		applyAbility(this, killer, Ability.EventType.UPON_DEATH);
+	}
+
+	public void uponKilling(Unit victim) {
+		applyAbility(this, victim, Ability.EventType.UPON_KILLING);
 	}
 }

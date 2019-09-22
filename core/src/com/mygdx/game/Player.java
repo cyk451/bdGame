@@ -43,6 +43,8 @@ public class Player {
 
 	public void render(MyGdxGame game) {
 		mGrid.render(game);
+		for (Unit u :mOrderList)
+			u.render(game);
 	}
 
 	public boolean handleTouch(Vector3 pos) {

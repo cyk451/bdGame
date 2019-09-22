@@ -9,6 +9,7 @@ import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Color;
 
 
+import com.mygdx.game.abilities.*;
 import com.badlogic.gdx.utils.*;
 import java.util.*;
 
@@ -57,6 +58,7 @@ public class UnitProperties {
 	public Type		type;
 	public TargetSelector	selector;
 	public Texture		illustration;
+	public Ability.Props[]	abilities;
 
 	static public abstract class TargetSelector {
 		public Texture mIcon;
@@ -248,11 +250,22 @@ public class UnitProperties {
 			}
 			i += 1;
 		}
+
 		pattern.sort(new PatternVertexComparator());
 		System.out.println("mk " + pattern.get(0).x + ", " + pattern.get(0).y);
 
 		System.out.println(pattern);
 		// Collections.sort(pattern, new PatternVertexComparator());
+
+		abilities = new Ability.Props[4];
+		JsonValue abilitiesJson = json.get("abilities");
+		if (abilitiesJson == null) {
+			return ;
+		}
+		i = 0;
+		for (JsonValue abilityJson: abilitiesJson.iterator()) {
+			abilities[i++] = Ability.parseProp(abilityJson);
+		}
 	}
 
 	public String getName() { return name; }

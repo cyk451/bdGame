@@ -86,10 +86,12 @@ public class Tile extends Polygon {
 		sr.circle(x, y, radius);
 		sr.end();
 
-		if (mUnit != null)
-			mUnit.render(mRenderSpot, game);
+		// if (mUnit != null)
+			// mUnit.render(game);
 			// renderUnit(game);
 	}
+
+	public Vector2 getRenderSpot() { return mRenderSpot; }
 
 	public Color getColor() { return mOwner.getColor(); }
 

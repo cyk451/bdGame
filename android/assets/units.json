@@ -12,10 +12,15 @@
 			"illust_size": [48, 48],
 			"abilities": [
 				{
-					"name": "additional_dmage",
-					"description": "Zibra tank deal %d extra damage to the targets",
-					"processor": "additionalDamageAbility",
-					"proc_args": [ 100 ]
+					"name": "bombard",
+					"descriptions": "Zibra tank deal extra damage to the targets",
+					"trigger": "after_attacking",
+					"modifiers": [
+						{
+							"modifier": "extradamage",
+							"args": [ 100 ]
+						}
+					]
 				}
 			]
 		},

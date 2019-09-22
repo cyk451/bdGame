@@ -56,7 +56,8 @@ public class Engine extends Thread {
 	}
 
 	private void beforeBattle() {
-		mUnitQueue = formGlobalOrderList();
+		mUnitQueue = new LinkedList();
+		// mUnitQueue = formGlobalOrderList();
 	}
 
 	public void run() {
@@ -127,8 +128,10 @@ public class Engine extends Thread {
 
 	// here some dead unit are removed.
 	private Unit getActiveUnit() {
-		if (mUnitQueue.size() != 0) {
-			return mUnitQueue.remove();
+		while (mUnitQueue.size() != 0) {
+			Unit candidate = mUnitQueue.remove();
+			if (!candidate.isDead())
+				return candidate;
 		}
 		// round over, next round
 		mUnitQueue = formGlobalOrderList();
@@ -149,7 +152,7 @@ public class Engine extends Thread {
 
 	public void tick(/*float delta*/) {
 		if (isGameEnd()) {
-			System.out.println("Player '" + mWinner.getName() + "' wins");
+			Gdx.app.log("Engine", "Player '" + mWinner.getName() + "' wins");
 			if (mWinner == mPlayers[0])
 				mListener.onWin();
 			else
@@ -164,6 +167,7 @@ public class Engine extends Thread {
 			mActiveUnit.setActive(false);
 
 		mActiveUnit = getActiveUnit(); // pop queue
+		// Gdx.app.log("Engine", "Player '" + mWinner.getName() + "' act " + mActiveUnit.getName());
 		if (mActiveUnit == null) {
 			endRound();
 			return;
@@ -178,8 +182,8 @@ public class Engine extends Thread {
 
 	private void endRound() {
 		// do anything required for round ending
-		mRound += 1;
 		mListener.onRound(mRound);
+		mRound += 1;
 	}
 
 	private void dealDamage(Unit attacker, Unit attacked) {
