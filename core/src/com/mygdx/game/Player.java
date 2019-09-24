@@ -19,6 +19,7 @@ public class Player {
 	Color				mColor;
 	int				mIndex;
 	boolean				mFlip;
+	Set<Unit>			mLostUnitSet;
 
 	private int			mBattleUnitCount;
 
@@ -36,6 +37,7 @@ public class Player {
 
 		mGrid = new Grid(x, y, this);
 		mOrderList = new Array<Unit>();
+		mLostUnitSet = new TreeSet<Unit>();
 	}
 
 	public Player setName(String name) { mName = name; return this; }
@@ -97,7 +99,7 @@ public class Player {
 
 	public void notifyUnitLost(Unit u) {
 		if (u.getType() != UnitProperties.Type.INFRA)
-			mBattleUnitCount -= 1;
+			mLostUnitSet.add(u);
 	}
 
 	public void removeUnit(Unit toBeRemoved) {
@@ -235,7 +237,7 @@ public class Player {
 	}
 	public boolean isLose() {
 		Gdx.app.log("Player", getName() + " has " + mBattleUnitCount);
-		return mBattleUnitCount == 0;
+		return mBattleUnitCount == mLostUnitSet.size();
 	}
 
 	static public class Formation {

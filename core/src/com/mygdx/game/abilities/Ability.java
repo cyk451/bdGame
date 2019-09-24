@@ -12,8 +12,9 @@ import java.util.*;
 
 public class Ability {
 
-	public static Map<String, ModifierBuilder>	sAbilityMap;
-	public static EnumMap<EventType, Modifier>	sEventMap;
+	public static Map<String, ModifierBuilder>		sAbilityMap;
+	// public static EnumMap<EventType, Modifier>		sEventMap;
+	public static EnumMap<ObjectType, ObjectBuilder>	sObjTypeMap;
 
 	protected Unit			mOwner;
 	protected Props			mProps;
@@ -28,8 +29,20 @@ public class Ability {
 		builder = new ExtraDamageModifier.Builder();
 		sAbilityMap.put(builder.name().toUpperCase(), builder);
 
-		sEventMap = new EnumMap<EventType, Modifier>(EventType.class);
+		// sEventMap = new EnumMap<EventType, Modifier>(EventType.class);
+
+		sObjTypeMap = new EnumMap<ObjectType,
+			       ObjectBuilder>(ObjectType.class);
+		sObjTypeMap.put(ObjectType.SELF,		Self.sBuilder);
+		sObjTypeMap.put(ObjectType.TARGET,		Target.sBuilder);
+		sObjTypeMap.put(ObjectType.ATTACKER,	Attacker.sBuilder);
 		// adding more modifiers here
+	}
+
+	public enum ObjectType {
+		SELF,
+		TARGET,
+		ATTACKER
 	}
 
 	/** EvenType defines when will an ability to be triggered
@@ -61,8 +74,57 @@ public class Ability {
 		}
 	}
 
+	static public interface ObjectBuilder {
+		Object build();
+	}
+
+	static public interface Object {
+		Array<Unit> get(Unit source);
+	}
+
+	static public class Self implements Object {
+		static public ObjectBuilder sBuilder = new ObjectBuilder() {
+			public Object build() {
+				return new Self();
+			}
+		};
+		@Override
+		public Array<Unit> get(Unit source) {
+			Array<Unit> r = new Array<Unit>();
+			r.add(source);
+			return r;
+		}
+	}
+
+	static public class Target implements Object {
+		static public ObjectBuilder sBuilder = new ObjectBuilder() {
+			public Object build() {
+				return new Target();
+			}
+		};
+		@Override
+		public Array<Unit> get(Unit source) {
+			return source.getTargets();
+		}
+	}
+
+	static public class Attacker implements Object {
+		static public ObjectBuilder sBuilder = new ObjectBuilder() {
+			public Object build() {
+				return new Attacker();
+			}
+		};
+		@Override
+		public Array<Unit> get(Unit source) {
+			Array<Unit> r = new Array<Unit>();
+			r.add(source.getAttacker());
+			return r;
+		}
+	}
+
 	static abstract public class Modifier {
 		String mInfo;
+		Object mObject;
 		// Unit mOwner;
 		public Modifier(JsonValue json) {
 			parse(json);
@@ -71,7 +133,7 @@ public class Ability {
 		/**
 		 * The real ability effect is to be implement here
 		 */
-		abstract public boolean apply(Unit owner, Unit target);
+		abstract public boolean apply(Unit owner);
 		abstract public boolean parse(JsonValue json);
 	}
 	/**
@@ -115,7 +177,12 @@ public class Ability {
 				Gdx.app.log("Ability", "Can not find ability named: " + modName);
 				continue;
 			}
-			Modifier modifier = builder.instance(modifierJson.get("args"));
+			Modifier modifier = builder.instance(modifierJson);
+			ObjectType oType = ObjectType.valueOf(
+					modifierJson.getString("object").toUpperCase()
+					);
+			modifier.mObject = sObjTypeMap.get(oType).build();
+			// modifierJson.getString().toUpperCase();
 			prop.mModifiers.add(modifier);
 		}
 		return prop;
@@ -135,11 +202,11 @@ public class Ability {
 		return mProps.mType;
 	}
 
-	public void apply(Unit caster, Unit target) {
+	public void apply(Unit caster) {
 		Gdx.app.log("ExtraDamage", "caster: " + caster.getOwner().getName() + " - " + caster.getName());
-		Gdx.app.log("ExtraDamage", "target: " + target.getOwner().getName() + " - " + target.getName());
+		// Gdx.app.log("ExtraDamage", "target: " + target.getOwner().getName() + " - " + target.getName());
 		for (Modifier mod: mProps.mModifiers) {
-			mod.apply(caster, target);
+			mod.apply(caster);
 		}
 	}
 

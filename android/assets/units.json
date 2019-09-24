@@ -18,7 +18,8 @@
 					"modifiers": [
 						{
 							"modifier": "extradamage",
-							"args": [ 100 ]
+							"object": "target",
+							"percentage": 100
 						}
 					]
 				}

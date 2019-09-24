@@ -8,6 +8,7 @@ import java.util.*;
 
 public class EnhancementModifier extends Ability.Modifier {
 	float mPercentage;
+	String mProperty;
 	// @Override
 	static class Builder implements Ability.ModifierBuilder {
 		@Override
@@ -33,17 +34,13 @@ public class EnhancementModifier extends Ability.Modifier {
 	}
 
 	@Override
-	public boolean apply(Unit caster, Unit target) {
-		int rawAtk = caster.getAtk();
-		int damageInt = (int)(rawAtk * mPercentage);
+	public boolean apply(Unit caster) {
+		Array<Unit> targets = mObject.get(caster);
+		// int damageInt = (int)(* mPercentage);
 
-		Gdx.app.log("ExtraDamage", "caster: " +
+		Gdx.app.log("Enhancement", "caster: " +
 				caster.getOwner().getName() +
 				" - " + caster.getName());
-		Gdx.app.log("ExtraDamage", "target: " +
-				target.getOwner().getName() +
-				" - " + target.getName());
-		target.dealDamage(caster.buildDamage(damageInt));
 		return true;
 	}
 

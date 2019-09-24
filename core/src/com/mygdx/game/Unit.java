@@ -19,7 +19,7 @@ import com.badlogic.gdx.math.Vector2;
 import com.mygdx.game.abilities.*;
 import java.util.*;
 
-public class Unit {
+public class Unit implements Comparable<Unit> {
 	// static public Texture testTexture = new Texture(Gdx.files.internal("bucket.png"));
 	static public Unit sChosenUnit = null;
 
@@ -49,12 +49,15 @@ public class Unit {
 	private int				mCurrentHp;
 	private boolean				mPrepared;
 	private Unit				mMainTarget;
-	private Array<Unit>			mAttackingGroup;
+	private Array<Unit>			mTargetGroup;
 	private java.util.Queue<Damage> 	mReceivedDamages;
 	private boolean				mActive;
 	private Player				mTargetingPlayer;
 	private Sprite				mSprite;
 	private Array<Ability>			mAbilities;
+	private Unit				mAttacker;
+	private int				mUid;
+	private static int			mUidCounter = 0;
 
 	// free it somehow
 	static private BitmapFont sFont = new BitmapFont();
@@ -73,7 +76,7 @@ public class Unit {
 		mPrepared = false; // for tastics only;
 		mCurrentHp = mProps.hitpoints;
 		mReceivedDamages = new LinkedList<Damage>();
-		mAttackingGroup = new Array<Unit>();
+		mTargetGroup = new Array<Unit>();
 
 		mSprite = new Sprite(mProps.illustration);
 		if (mOwner.getFlip())
@@ -90,6 +93,8 @@ public class Unit {
 				continue;
 			mAbilities.add(ap.instance());
 		}
+		mUid = mUidCounter;
+		mUidCounter += 1;
 	}
 
 	public void deploy(Grid grid, int x, int y) {
@@ -155,6 +160,9 @@ public class Unit {
 	public int getOrder() { return mOrder; }
 	public void setOrder(int o) { mOrder = o; }
 
+	public void setAttacker(Unit u) { mAttacker = u; }
+	public Unit getAttacker() { return mAttacker; }
+
 	public Player getOwner() { return mOwner; }
 	public UnitProperties.Pattern getPattern() { return mProps.pattern; }
 
@@ -190,6 +198,7 @@ public class Unit {
 		if (target.isDead())
 			return ;
 
+		target.setAttacker(this);
 		target.beforeAttacked(this);
 		target.dealDamage(new Damage(getAtk()));
 		Gdx.app.log("Unit", "caster: " + getOwner().getName() + " - " + getName());
@@ -203,8 +212,8 @@ public class Unit {
 
 	private void updateTargets() {
 		Unit main = getTargetSelector().findTarget(this);
-		mAttackingGroup.clear();
-		// mAttackingGroup.add(main);
+		mTargetGroup.clear();
+		// mTargetGroup.add(main);
 		if (main == null)
 			return ;
 
@@ -214,7 +223,7 @@ public class Unit {
 			Tile t = grid.getTile(x + offset.x, y + offset.y);
 			if (t != null && t.getUnit() != null) {
 				Gdx.app.log("Unit", "target " + (x + offset.x) + ", " + (y + offset.y));
-				mAttackingGroup.add(t.getUnit());
+				mTargetGroup.add(t.getUnit());
 			}
 		}
 	}
@@ -224,18 +233,18 @@ public class Unit {
 		// notifyTargetSelcted
 		// targetSelected();
 
-		// mAttackingGroup;
+		// mTargetGroup;
 		Gdx.app.log("Unit", "runTurn: " + getName()  + " of "
 				+ mOwner.getName() + " has "
-				+ mAttackingGroup.size + "' targets");
+				+ mTargetGroup.size + "' targets");
 
-		for (Unit t: mAttackingGroup) {
+		for (Unit t: mTargetGroup) {
 			beforeAttacking(t);
 		}
-		for (Unit t: mAttackingGroup) {
+		for (Unit t: mTargetGroup) {
 			engage(t);
 		}
-		for (Unit t: mAttackingGroup) {
+		for (Unit t: mTargetGroup) {
 			afterAttacking(t);
 		}
 		// end turn
@@ -319,6 +328,10 @@ public class Unit {
 
 	public Player getTargetingPlayer() { return mTargetingPlayer; }
 
+	public Array<Unit> getTargets() {
+		return new Array<Unit>(mTargetGroup);
+	}
+
 	public class DeployButton extends Button {
 		Image mInner;
 		DeployButton(Skin skin) {
@@ -358,7 +371,8 @@ public class Unit {
 	public void applyAbility(Unit from, Unit to, Ability.EventType t) {
 		for (Ability ab: mAbilities)
 			if (ab.getType() == t)
-				ab.apply(from, to);
+				ab.apply(from);
+				// ab.apply(from, to);
 	}
 
 	public void beforeAttacked(Unit from) {
@@ -383,5 +397,10 @@ public class Unit {
 
 	public void uponKilling(Unit victim) {
 		applyAbility(this, victim, Ability.EventType.UPON_KILLING);
+	}
+
+	@Override
+	public int compareTo(Unit u) {
+		return mUid - u.mUid;
 	}
 }

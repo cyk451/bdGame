@@ -25,25 +25,26 @@ public class ExtraDamageModifier extends Ability.Modifier {
 
 	@Override
 	public boolean parse(JsonValue json) {
-		Iterator<JsonValue> iter = json.iterator();
-		if (!iter.hasNext())
-			return false;
-		mPercentage = iter.next().asFloat();
+		mPercentage = json.getFloat("percentage") / 100.00f;
 		return true;
 	}
 
 	@Override
-	public boolean apply(Unit caster, Unit target) {
+	public boolean apply(Unit caster) {
+		Array<Unit> objects = mObject.get(caster);
 		int rawAtk = caster.getAtk();
 		int damageInt = (int)(rawAtk * mPercentage);
 
 		Gdx.app.log("ExtraDamage", "caster: " +
 				caster.getOwner().getName() +
 				" - " + caster.getName());
+		/*
 		Gdx.app.log("ExtraDamage", "target: " +
 				target.getOwner().getName() +
 				" - " + target.getName());
-		target.dealDamage(caster.buildDamage(damageInt));
+				*/
+		for (Unit u: objects)
+			u.dealDamage(caster.buildDamage(damageInt));
 		return true;
 	}
 
