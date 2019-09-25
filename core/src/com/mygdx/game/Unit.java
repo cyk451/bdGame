@@ -65,11 +65,12 @@ public class Unit implements Comparable<Unit> {
 	// private float posX, posY;
 	Player		mOwner;
 	Tile		mTile;
-	DeployButton	mButton;
 
 	private Buff[] mBuffs;
 
 	public Unit(UnitProperties p, Player o) {
+		if (o == null || p == null)
+			throw new IllegalArgumentException("Unit() inputs cannot be null");
 		mOwner = o;
 		mProps = p;
 		mOrder = -1;
@@ -86,7 +87,6 @@ public class Unit implements Comparable<Unit> {
 		mTargetingPlayer = mOwner.getOpponent();
 		if (getType() == UnitProperties.Type.INFRA)
 			mTargetingPlayer = mOwner;
-		// mButton = new DeployButton();
 		mAbilities = new Array<Ability>();
 		for (Ability.Props ap: mProps.abilities) {
 			if (ap == null)
@@ -130,7 +130,7 @@ public class Unit implements Comparable<Unit> {
 
 	/**
 	 * Unit.setTile() and Tile.setUnit() are symetric, which always call
-	 * each other to ensure unit <-> tile pairs is syncronized.
+	 * each other to keep unit, tile be paired.
 	 */
 	public void setTile(Tile t) {
 		if (mTile == t)
@@ -144,11 +144,9 @@ public class Unit implements Comparable<Unit> {
 
 		if (mTile != null) {
 			mTile.setUnit(this);
-			if (mOwner == GameScreen.getControllingPlayer())
-				mButton.setDisabled(true);
+			mOwner.addUnit(this);
 		} else {
-			if (mOwner == GameScreen.getControllingPlayer())
-				mButton.setDisabled(false);
+			mOwner.removeUnit(this);
 		}
 
 	}
@@ -330,42 +328,6 @@ public class Unit implements Comparable<Unit> {
 
 	public Array<Unit> getTargets() {
 		return new Array<Unit>(mTargetGroup);
-	}
-
-	public class DeployButton extends Button {
-		Image mInner;
-		DeployButton(Skin skin) {
-			super(skin, "deploy");
-			mInner = new Image(new SpriteDrawable(getIllust()));
-			add(mInner);
-
-		}
-
-		@Override
-		public void draw(Batch batch, float parentAlpha) {
-			super.draw(batch, parentAlpha);
-		}
-
-		@Override
-		public void setDisabled(boolean disabled) {
-			super.setDisabled(disabled);
-			if (disabled) {
-				mInner.setColor(Color.GRAY);
-			} else {
-				mInner.setColor(Color.WHITE);
-			}
-		}
-	}
-
-	public Button asButton(Skin skin) {
-		// if (skin != null)
-			// mButton.setStyle(skin.getStyle("toggle", ImageButton.class));
-		mButton = new DeployButton(skin);
-		return mButton;
-	}
-
-	public Button asButton() {
-		return mButton;
 	}
 
 	public void applyAbility(Unit from, Unit to, Ability.EventType t) {

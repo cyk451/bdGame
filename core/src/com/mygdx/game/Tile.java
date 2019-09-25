@@ -1,15 +1,16 @@
 package com.mygdx.game;
 
-import com.mygdx.game.screen.GameScreen;
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.PolygonRegion;
 import com.badlogic.gdx.graphics.g2d.Sprite;
-import com.badlogic.gdx.graphics.glutils.ShapeRenderer.ShapeType;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
+import com.badlogic.gdx.graphics.glutils.ShapeRenderer.ShapeType;
 import com.badlogic.gdx.math.EarClippingTriangulator;
 import com.badlogic.gdx.math.Polygon;
-import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.Vector2;
+import com.badlogic.gdx.math.Vector3;
+import com.mygdx.game.screen.GameScreen;
 import java.util.Arrays;
 
 
@@ -85,10 +86,6 @@ public class Tile extends Polygon {
 		sr.setColor((sHighlight == this)? Color.WHITE: getColor());
 		sr.circle(x, y, radius);
 		sr.end();
-
-		// if (mUnit != null)
-			// mUnit.render(game);
-			// renderUnit(game);
 	}
 
 	public Vector2 getRenderSpot() { return mRenderSpot; }
@@ -98,6 +95,7 @@ public class Tile extends Polygon {
 	public Unit getUnit() { return mUnit; }
 
 	public void setUnit(Unit unit) {
+		// unit could be null
 		if (mUnit == unit)
 			return ;
 
@@ -120,7 +118,7 @@ public class Tile extends Polygon {
 	 *    X    X         X    X
 	 */
 	// return boolean: is touch event handled.
-	public boolean handleTouch(Vector3 pos) {
+	public boolean handleDown(Vector3 pos) {
 		if (!contains(pos.x, pos.y))
 			return false;
 
@@ -138,8 +136,8 @@ public class Tile extends Polygon {
 		if (!contains(pos.x, pos.y))
 			return false;
 
-		if (GameScreen.sClearButton.isChecked() && mUnit != null) {
-			GameScreen.getControllingPlayer().deployUnit(mUnit, null);
+		if (mOwner.getMode() == Player.ActMode.CLEAR) {
+			setUnit(null);
 			return true;
 		}
 
@@ -153,13 +151,13 @@ public class Tile extends Polygon {
 		if (temp == mUnit)
 			return true;
 
-		System.out.println("deploying it");
+		Gdx.app.log("Tile", "deploy it");
 		boolean handled = false;
 
-		if (GameScreen.sOrderChangeButton.isChecked()) {
-			handled = GameScreen.getControllingPlayer().swapOrder(temp, mUnit);
+		if (mOwner.getMode() == Player.ActMode.ORDER) {
+			handled = mOwner.swapOrder(temp, mUnit);
 		} else {
-			handled = GameScreen.getControllingPlayer().deployUnit(temp, this);
+			handled = mOwner.deployUnit(temp, this);
 		}
 		return true;
 	}

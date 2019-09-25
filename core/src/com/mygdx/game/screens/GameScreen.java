@@ -18,10 +18,11 @@ import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.scenes.scene2d.actions.RepeatAction;
+import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.*;
-import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
+import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.scenes.scene2d.utils.SpriteDrawable;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
@@ -61,6 +62,47 @@ public class GameScreen implements Screen {
 
 	public static void setTopMessage(String what, int lastMs) {
 		sTopMessage.showMessage(what, lastMs);
+	}
+
+
+	public class DeployButton extends Button {
+		Image mInner;
+		Unit mUnit;
+		DeployButton(Unit u, Skin skin) {
+			super(skin, "deploy");
+			mUnit = u;
+			mInner = new Image(new SpriteDrawable(u.getIllust()));
+			add(mInner);
+
+			addListener( new ChangeListener() {
+				@Override // click listener
+				public void changed(ChangeListener.ChangeEvent e, Actor a) {
+					DeployButton btn = (DeployButton)a;
+					Gdx.app.log("DeployButton", "checked = " + isChecked());
+					if (!btn.isChecked()) {
+						Unit.sChosenUnit = null;
+						return;
+					}
+					sPlayers[0].setMode(Player.ActMode.DEPLOY);
+					Unit.sChosenUnit = btn.mUnit;
+					sInfoBar.setInformation(mUnit);
+				}
+			}
+			);
+		}
+
+
+		@Override // button
+		public void draw(Batch batch, float parentAlpha) {
+			setDisabled(mUnit.isDeployed());
+			super.draw(batch, parentAlpha);
+		}
+
+		@Override // button
+		public void setDisabled(boolean disabled) {
+			super.setDisabled(disabled);
+			mInner.setColor(disabled? Color.GRAY: Color.WHITE);
+		}
 	}
 
 	public class TopMessage extends Table
@@ -171,10 +213,10 @@ public class GameScreen implements Screen {
 			pad(10.0f);
 
 			Button startButton = new TextButton("Fight", mGame.getUiSkin());
-			startButton.addListener(new ClickListener() {
+			startButton.addListener(new ChangeListener() {
 				@Override
-				public void clicked(InputEvent event, float x, float y) {
-					System.out.println("Fight starts");
+				public void changed(ChangeListener.ChangeEvent event, Actor act) {
+					Gdx.app.log("GameScreen", "Fight starts");
 					mEngine.start();
 					sUnitSelectBar.setVisible(false);
 					sInfoBar.setVisible(false);
@@ -185,11 +227,27 @@ public class GameScreen implements Screen {
 
 
 			sOrderChangeButton = new TextButton("Order", mGame.getUiSkin(), "toggle");
+			sOrderChangeButton.addListener(new ChangeListener() {
+				@Override
+				public void changed(ChangeListener.ChangeEvent event, Actor act) {
+					TextButton btn = (TextButton)(act);
+					if (btn.isChecked())
+						sPlayers[0].setMode(Player.ActMode.ORDER);
+				}
+			});
 			mSelected.add(sOrderChangeButton);
 
 			add(sOrderChangeButton).height(52f);
 
 			sClearButton = new TextButton("X", mGame.getUiSkin(), "toggle");
+			sClearButton.addListener(new ChangeListener() {
+				@Override
+				public void changed(ChangeListener.ChangeEvent event, Actor act) {
+					TextButton btn = (TextButton)(act);
+					if (btn.isChecked())
+						sPlayers[0].setMode(Player.ActMode.CLEAR);
+				}
+			});
 			mSelected.add(sClearButton);
 
 			add(sClearButton).height(52f);
@@ -197,28 +255,13 @@ public class GameScreen implements Screen {
 
 			Skin skin = mGame.getUiSkin();
 			for (final Unit u : sUnitList)
-				addButton(u.asButton(skin), u);
+				addButton(new DeployButton(u, skin), u);
 			ScrollPane sp = new ScrollPane(mUnitListGroup, mGame.getUiSkin());
 
 			add(sp).left();
 		}
 
 		public void addButton(final Button button, final Unit unit) {
-			button.addListener(new ClickListener(){
-				@Override
-				public void clicked(InputEvent event, float x, float y){
-					if (button.isDisabled())
-						return ;
-					Gdx.app.log("buttonListener", "Click at " + x + "," + y);
-					if (!button.isChecked()) {
-						Unit.sChosenUnit = null;
-					}
-					// if (!u.isDeployed())
-					Unit.sChosenUnit = unit;
-					sInfoBar.setInformation(unit);
-					// uncheck other boxes
-				}
-			});
 
 			mUnitListGroup.addActor(button);
 			mSelected.add(button);
@@ -263,7 +306,7 @@ public class GameScreen implements Screen {
 				Vector3 np = mViewport.unproject(tp.set(x, y, 0));
 				// Gdx.app.log("Mouse Event","Click at " + tp.x + "," + tp.y);
 				for (Player player : sPlayers)
-					if (player.handleTouch(np))
+					if (player.handleDown(np))
 						return true;
 				return false;
 			}
@@ -353,12 +396,11 @@ public class GameScreen implements Screen {
 		mStage.dispose();
 	}
 
-	public static Player getControllingPlayer() {
-		return sPlayers[0];
-	}
-
 	private void loadScene() {
-		sPlayers[1].applyFormation(mGame.mFormation);
+		Player opponent = sPlayers[1];
+		opponent.setMode(Player.ActMode.DEPLOY);
+		opponent.applyFormation(mGame.mFormation);
+		opponent.setMode(Player.ActMode.WAITING);
 	}
 
 }

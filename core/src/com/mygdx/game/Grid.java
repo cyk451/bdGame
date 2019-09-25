@@ -17,6 +17,7 @@ import com.badlogic.gdx.math.Circle;
 class Grid {
 	private Array<Lane> mLanes;
 
+	private Rectangle mBounding;
 	float mOffX, mOffY;
 	Player mOwner;
 	// Color color;
@@ -76,6 +77,10 @@ class Grid {
 			y -= 1.5 * e;
 			y -= 0.5 * s * SQRT3;
 		}
+
+		float w = Grid.width();
+		w += 0.5 * SQRT3 * TILE_EDGE_PXL;
+		mBounding = new Rectangle(mOffX, mOffY, w, height());
 	}
 
 	public void render(MyGdxGame game) {
@@ -116,12 +121,10 @@ class Grid {
 	}
 
 	public boolean contains(Vector3 pos) {
-		float w = Grid.width();
-		w += 0.5 * SQRT3 * TILE_EDGE_PXL;
-		return new Rectangle(mOffX, mOffY, w, height()).contains(pos.x, pos.y);
+		return mBounding.contains(pos.x, pos.y);
 	}
 
-	public boolean handleTouch(Vector3 pos) {
+	public boolean handleDown(Vector3 pos) {
 		Gdx.app.log("Grid","recieved at " + pos.x + "," + pos.y);
 		if (!contains(pos))
 			return false;
@@ -133,7 +136,7 @@ class Grid {
 
 		for (Lane lane: mLanes)
 			for (Tile tile: lane)
-				if (tile.handleTouch(pos))
+				if (tile.handleDown(pos))
 					return true;
 		return false;
 	}

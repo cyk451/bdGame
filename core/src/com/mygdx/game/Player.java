@@ -1,6 +1,5 @@
 package com.mygdx.game;
 
-// import com.mygdx.game.screen.GameScreen;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
@@ -9,7 +8,9 @@ import com.badlogic.gdx.math.*;
 import com.badlogic.gdx.utils.*;
 import java.util.*;
 
-/* must create left player first */
+/** Player represents real players of the game and AI palyers as well.
+ * It's the top most object in the model hierachy.
+ */
 public class Player {
 	private Grid			mGrid;
 	String				mName;
@@ -18,10 +19,35 @@ public class Player {
 	Array<Unit>			mOrderList;
 	Color				mColor;
 	int				mIndex;
+	/** flip property affacts the facing of a player.
+	 */
 	boolean				mFlip;
-	Set<Unit>			mLostUnitSet;
+	private ActMode			mMode;
 
+	private Set<Unit>		mLostUnitSet;
 	private int			mBattleUnitCount;
+
+	/** ActMode defines actions a player object can perform. It is mostly
+	 * control by owning screen object. */
+	public enum ActMode {
+		/** Player in this mode is waiting for opponent actions and can
+		 * not perform any modifications.
+		 */
+		WAITING,
+		/** Player in this mode can modify its deployment
+		 */
+		DEPLOY,
+		/** In this mode user can adjust order of units, but not
+		 * formation
+		 */
+		ORDER,
+		/** A mode in which palyer can remove individual units.
+		 */
+		CLEAR,
+		/** Unit rendering can change in this mode.
+		 */
+		BATTLE
+	}
 
 	public Player(float x, float y, Player opponent, Color c) {
 		mFlip = false;
@@ -38,7 +64,11 @@ public class Player {
 		mGrid = new Grid(x, y, this);
 		mOrderList = new Array<Unit>();
 		mLostUnitSet = new TreeSet<Unit>();
+		mMode = ActMode.WAITING;
 	}
+
+	public void setMode(ActMode newMode) { mMode = newMode; }
+	public ActMode getMode() { return mMode; }
 
 	public Player setName(String name) { mName = name; return this; }
 	public String getName() { return mName; }
@@ -49,8 +79,8 @@ public class Player {
 			u.render(game);
 	}
 
-	public boolean handleTouch(Vector3 pos) {
-		return mGrid.handleTouch(pos);
+	public boolean handleDown(Vector3 pos) {
+		return mGrid.handleDown(pos);
 	}
 
 	public boolean handleUp(Vector3 pos) {
@@ -65,7 +95,7 @@ public class Player {
 	}
 
 	public void addUnit(Unit u) {
-		updateOrder();
+		// updateOrder();
 
 		if (mOrderList.indexOf(u, false) != -1)
 			return;
@@ -73,7 +103,7 @@ public class Player {
 		mOrderList.add(u);
 
 		u.setOrder(mOrderList.size);
-		System.out.println(u + " is " + u.getOrder());
+		Gdx.app.log("addUnit", u + " is " + u.getOrder());
 		if (u.getType() != UnitProperties.Type.INFRA)
 			mBattleUnitCount += 1;
 
@@ -107,9 +137,14 @@ public class Player {
 		toBeRemoved.setOrder(-1);
 
 		// reorder units
-		int i = 1;
-		for (Unit u: mOrderList) { u.setOrder(i++); }
-		System.out.println(toBeRemoved + " back " + toBeRemoved.getOrder());
+		int i = 0;
+		for (Unit u: mOrderList) {
+			i++;
+			Gdx.app.log("Unit",
+					u.getName() + " reordered from " +
+					u.getOrder() + " to " + i);
+			u.setOrder(i);
+		}
 	}
 
 	public class UnitIterator implements Iterator<Unit> {
@@ -148,7 +183,6 @@ public class Player {
 			return null;
 		Unit result = null;
 		do {
-			// System.out.println(getName() + " popping " + mIndex);
 			result = mOrderList.get(mIndex);
 			mIndex += 1;
 			if (!result.isDead())
@@ -179,19 +213,15 @@ public class Player {
 
 		for (int c = from; c != to; c += inc) {
 			Tile tile = lane.get(c);
-			// System.out.println("getMainTargetTile: " + c + " / " + to + " checking");
 			Unit unit = tile.getUnit();
 			if (unit == null)
 				continue;
 			if (unit.isDead())
 				continue;
-			// System.out.println("getMainTargetTile: matched at " + c + " / " + to + " checking");
 			result = unit;
 			if (--match == 0)
 				break;
 		}
-		// if (result != null)
-			// System.out.println("getMainTargetTile: found [" + result.mX + ", " + result.mY + "]");
 		return result;
 	}
 
@@ -216,7 +246,6 @@ public class Player {
 			UnitProperties.Pattern pat)
 	{
 		Array<Unit> list = new Array<Unit>();
-		System.out.println("getTargets: " + lane + ", " + range + ".");
 
 		if (lane < 0 || lane >= Grid.HEIGHT)
 			return list;
@@ -281,12 +310,16 @@ public class Player {
 	public void applyFormation(Formation f) {
 		for (Formation.Deployment d: f.mOrderList) {
 			// mGrid.getTile(d.mX, d.mY).deployUnit(new Unit(d.mUnitProp, this), this);
-			deployUnit(new Unit(d.mUnitProp, this), mGrid.getTile(d.mX, d.mY));
+			deployUnit(new Unit(d.mUnitProp, this),
+					mGrid.getTile(d.mX, d.mY));
 		}
 	}
 
 	// return boolean: deployUnit successful.
 	public boolean deployUnit(Unit toBeDeployed, Tile tile) {
+		if (mMode != ActMode.DEPLOY)
+			return false;
+
 		if (tile == null) {
 			toBeDeployed.setTile(null);
 			return true;
@@ -301,24 +334,23 @@ public class Player {
 		if (toBeDeployed.getOwner() != this)
 			return false;
 
-		System.out.println("returning true");
-
 		Tile theOtherTile = toBeDeployed.getTile();
 		toBeDeployed.setTile(null);
 
-		Unit theOtherUnit = tile.getUnit();
-		if (theOtherUnit != null) {
+		Unit occupyingUnit = tile.getUnit();
+		if (occupyingUnit != null) {
 			tile.setUnit(null);
 			if (theOtherTile != null) {
-				theOtherUnit.setTile(theOtherTile);
+				occupyingUnit.setTile(theOtherTile);
 			}
 		}
 		toBeDeployed.setTile(tile);
-		addUnit(toBeDeployed);
 		return true;
 	}
 
 	public boolean swapOrder(Unit a, Unit b) {
+		if (mMode != ActMode.ORDER && mMode != ActMode.CLEAR)
+			return false;
 		if (a == b)
 			return true;
 		if (a == null || a.getOwner() != this || !a.isDeployed())
